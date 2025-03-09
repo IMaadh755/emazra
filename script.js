@@ -1,12 +1,5 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyDlWQ1qYx5-owdm7YVfSnmUz443rZKwaDE",
-    authDomain: "restaurant-review-35bc1.firebaseapp.com",
+const firebaseConfig = {
     databaseURL: "https://restaurant-review-35bc1-default-rtdb.firebaseio.com",
-    projectId: "restaurant-review-35bc1",
-    storageBucket: "restaurant-review-35bc1.firebasestorage.app",
-    messagingSenderId: "794762331188",
-    appId: "1:794762331188:web:9090ebf328848f2607f661",
-    measurementId: "G-M0BYSP1C56"
 };
 
 const app = firebase.initializeApp(firebaseConfig);
