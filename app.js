@@ -516,62 +516,6 @@ function setupMobileSidebar() {
     });
 }
 
-// Save item (food, fruit, or restaurant)
-async function saveItem(type) {
-    const modalId = `add${type.charAt(0).toUpperCase() + type.slice(1)}Modal`;
-    const formId = `${type}Form`;
-    const saveBtnId = `save${type.charAt(0).toUpperCase() + type.slice(1)}Btn`;
-    
-    const form = document.getElementById(formId);
-    const saveBtn = document.getElementById(saveBtnId);
-    const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
-    
-    if (!form || !saveBtn || !modal) return;
-
-    // Get all form values with proper validation
-    const formData = {
-        name: document.getElementById(`${type}Name`).value.trim(),
-        price: parseFloat(document.getElementById(`${type}Price`).value) || 0,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    };
-
-    // Add type-specific fields
-    if (type === 'food') {
-        formData.restaurantId = document.getElementById('foodRestaurant').value;
-        formData.taste = document.getElementById('foodTaste').value === 'custom' 
-            ? document.getElementById('foodCustomTaste').value.trim()
-            : document.getElementById('foodTaste').value;
-        formData.rating = parseFloat(document.getElementById('foodRating').value) || 0;
-        formData.category = document.getElementById('foodCategory').value.trim();
-        formData.quantity = document.getElementById('foodQuantity').value === 'custom'
-            ? document.getElementById('foodCustomQuantity').value.trim()
-            : document.getElementById('foodQuantity').value;
-        formData.comments = document.getElementById('foodComments').value.trim();
-    } 
-    else if (type === 'fruit') {
-        formData.origin = document.getElementById('fruitOrigin').value.trim();
-        formData.taste = document.getElementById('fruitTaste').value === 'custom'
-            ? document.getElementById('fruitCustomTaste').value.trim()
-            : document.getElementById('fruitTaste').value;
-        formData.season = document.getElementById('fruitSeason').value.trim();
-        formData.quantity = document.getElementById('fruitQuantity').value === 'custom'
-            ? document.getElementById('fruitCustomQuantity').value.trim()
-            : document.getElementById('fruitQuantity').value;
-        formData.comments = document.getElementById('fruitComments').value.trim();
-    } 
-    else if (type === 'restaurant') {
-        formData.location = document.getElementById('restaurantLocation').value.trim();
-        formData.cuisine = document.getElementById('restaurantCuisine').value.trim();
-    }
-
-    // Validate required fields
-    if (!formData.name) {
-        alert(`Please enter a ${type} name`);
-        return;
-    }
-
-    try {
         if (saveBtn.dataset.docId) {
             // Update existing document
             await updateDoc(doc(db, `${type}s`, saveBtn.dataset.docId), formData);
