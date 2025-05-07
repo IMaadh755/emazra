@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Review Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="home-styles.css">
+</head>
+<body class="dark-theme">
+    <!-- Navigation -->
+    <nav class="glass-nav">
+        <div class="nav-brand">
+            <i class="fas fa-utensils"></i> Food Analytics Pro
+        </div>
+        <div class="nav-controls">
+            <div class="search-container">
+                <input type="text" id="globalSearch" placeholder="Search restaurants or foods...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="filter-group">
+                <select id="sortBy" class="form-select">
+                    <option value="rating_desc">Rating: High-Low</option>
+                    <option value="rating_asc">Rating: Low-High</option>
+                    <option value="price_desc">Price: High-Low</option>
+                    <option value="price_asc">Price: Low-High</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Add bottom navigation -->
+    <nav class="mobile-bottom-nav d-md-none">
+        <button class="nav-link active" data-type="food">
+          <i class="fas fa-utensils"></i>
+          <span>Food</span>
+        </button>
+        <button class="nav-link" data-type="fruit">
+          <i class="fas fa-apple-alt"></i>
+          <span>Fruits</span>
+        </button>
+      </nav>
+
+    <div class="container-fluid px-4">
+        <!-- Taste Filter -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="glass-card taste-filter">
+                    <div class="btn-group">
+                        <button class="btn-taste active" data-taste="all">All Items</button>
+                        <button class="btn-taste" data-taste="🥰 Excellent">🥰 Excellent</button>
+                        <button class="btn-taste" data-taste="🙂 Good">🙂 Good</button>
+                        <button class="btn-taste" data-taste="🤔 Average">🤔 Average</button>
+                        <button class="btn-taste" data-taste="😒 Dissatisfied">😒 Dissatisfied</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <!-- Food Container -->
+        <div class="row g-4 my-4" id="restaurantContainer" data-type="food"></div>
+  
+        <!-- Fruit Container -->
+        <div class="row g-4 my-4" id="fruitContainer" data-type="fruit" style="display: none;"></div>
+
+        <!-- Restaurant Container -->
+        <div class="row g-4 my-4" id="restaurantContainer"></div>
+    </div>
+
+    <!-- Templates -->
+    <template id="restaurantTemplate">
+        <div class="col-12">
+            <div class="glass-card restaurant-card">
+                <div class="restaurant-header">
+                    <div class="restaurant-info">
+                        <h3 class="restaurant-name"></h3>
+                        <div class="restaurant-meta">
+                            <span class="location"><i class="fas fa-map-marker-alt"></i> <span></span></span>
+                            <span class="cuisine"><i class="fas fa-utensils"></i> <span></span></span>
+                        </div>
+                    </div>
+                    <div class="restaurant-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Reviews</span>
+                            <span class="stat-value review-count"></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Avg Rating</span>
+                            <span class="stat-value avg-rating"></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Avg Price</span>
+                            <span class="stat-value avg-price"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="food-items-container"></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="foodItemTemplate">
+        <div class="food-item">
+            <div class="food-header">
+                <div class="food-main">
+                    <h5 class="food-name"></h5>
+                    <div class="food-meta">
+                        <span class="food-price"></span>
+                        <!-- Removed the food-quantity span from here -->
+                    </div>
+                </div>
+                <div class="food-rating">
+                    <div class="stars"></div>
+                    <span class="rating-value"></span>
+                </div>
+            </div>
+            <div class="food-details">
+                <div class="detail-row">
+                    <span class="detail-label">Quantity:</span>
+                    <span class="detail-value quantity-badge"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Taste:</span>
+                    <span class="detail-value taste-badge"></span>
+                </div>
+                <p class="food-comments"></p>
+                <div class="review-info">
+                    <span class="review-date"></span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="home-app.js"></script>
+</body>
+</html>
