@@ -1054,7 +1054,7 @@ input[type="color"]::-webkit-color-swatch {
 .table th:nth-child(2) { width: 10%; }  /* Price */
 .table th:nth-child(3) { width: 15%; }  /* Restaurant */
 .table th:nth-child(4) { width: 15%; }  /* Taste */
-.table th:nth-child(5) { width: 15%; }  /* Cuisine */
+.table th:nth-child(5) { width: 15%; }  /* Country */
 .table th:nth-child(6) { width: 10%; }  /* Quantity */
 .table th:nth-child(7) { width: 15%; }  /* Actions */
 
@@ -1063,7 +1063,7 @@ input[type="color"]::-webkit-color-swatch {
     .table td[data-label="Price"]::before { content: "Price"; }
     .table td[data-label="Restaurant"]::before { content: "Restaurant"; }
     .table td[data-label="Taste"]::before { content: "Taste"; }
-    .table td[data-label="Cuisine"]::before { content: "Cuisine"; }
+    .table td[data-label="Country"]::before { content: "Country"; }
     .table td[data-label="Quantity"]::before { content: "Quantity"; }
     .table td[data-label="Actions"]::before { content: "Actions"; }
 }

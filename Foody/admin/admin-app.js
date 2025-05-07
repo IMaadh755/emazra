@@ -258,12 +258,12 @@ function updateRecentFoods(foods) {
 // Update recent restaurants list
 function updateRecentRestaurants(restaurants) {
     if (!recentRestaurantsElement) return;
-    
+
     recentRestaurantsElement.innerHTML = '';
-    
+
     // Sort by creation date (newest first)
     const sortedRestaurants = [...restaurants].sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-    
+
     // Take top 5
     sortedRestaurants.slice(0, 5).forEach(restaurant => {
         const item = document.createElement('div');
@@ -274,7 +274,7 @@ function updateRecentRestaurants(restaurants) {
             </div>
             <div>
                 <div class="recent-title">${restaurant.name}</div>
-                <small class="text-muted">${restaurant.cuisine || 'No cuisine'} • ${restaurant.location || 'No location'}</small>
+                <small class="text-muted">${restaurant.location || 'No location'}</small>
             </div>
         `;
         recentRestaurantsElement.appendChild(item);
@@ -285,7 +285,7 @@ function updateRecentRestaurants(restaurants) {
 async function updateFoodsTable(foods) {
     if (!foodsTableBody) return;
     
-    // Get all countries first
+    // Get all countries
     const countriesSnapshot = await getDocs(collection(db, "countries"));
     const countriesMap = {};
     countriesSnapshot.forEach(doc => {
@@ -295,8 +295,10 @@ async function updateFoodsTable(foods) {
     foodsTableBody.innerHTML = '';
     const restaurantsSnapshot = await getDocs(collection(db, "restaurants"));
     const restaurantsMap = {};
+    const restaurantCountries = {};
     restaurantsSnapshot.forEach(doc => {
         restaurantsMap[doc.id] = doc.data().name;
+        restaurantCountries[doc.id] = doc.data().countryId;
     });
 
     foods.forEach((food) => {
@@ -306,7 +308,7 @@ async function updateFoodsTable(foods) {
             <td data-label="Price">QR ${(food.price || 0).toFixed(2)}</td>
             <td data-label="Restaurant">${restaurantsMap[food.restaurantId] || 'Unknown'}</td>
             <td data-label="Taste">${food.taste || '-'}</td>
-            <td data-label="Cuisine">${countriesMap[food.cuisine] || food.cuisine || '-'}</td>
+            <td data-label="Country">${countriesMap[food.countryId] || 'Unknown'}</td>
             <td data-label="Quantity">${food.quantity || '-'}</td>
             <td data-label="Actions">
                 <button class="btn btn-sm btn-outline-primary btn-action" onclick="editFood('${food.id}')">
@@ -322,9 +324,16 @@ async function updateFoodsTable(foods) {
 }
 
 // Update fruits table
-function updateFruitsTable(fruits) {
+async function updateFruitsTable(fruits) {
     if (!fruitsTableBody) return;
     
+    // Get all countries
+    const countriesSnapshot = await getDocs(collection(db, "countries"));
+    const countriesMap = {};
+    countriesSnapshot.forEach(doc => {
+        countriesMap[doc.id] = doc.data().name;
+    });
+
     fruitsTableBody.innerHTML = '';
 
     fruits.forEach((fruit) => {
@@ -332,7 +341,7 @@ function updateFruitsTable(fruits) {
         row.innerHTML = `
             <td data-label="Name">${fruit.name}</td>
             <td data-label="Price">QR ${fruit.price?.toFixed(2) || '0.00'}</td>
-            <td data-label="Origin">${fruit.origin}</td>
+            <td data-label="Country">${countriesMap[fruit.origin] || fruit.origin || 'Unknown'}</td>
             <td data-label="Taste">${fruit.taste}</td>
             <td data-label="Actions">
                 <button class="btn btn-sm btn-outline-primary btn-action" onclick="editFruit('${fruit.id}')">
@@ -489,16 +498,11 @@ function validateForm(type) {
             alert('Please select a restaurant');
             return false;
         }
-
-        const cuisine = document.getElementById('foodCuisine').value;
-        if (!cuisine) {
-            alert('Please select a cuisine');
-            return false;
-        }
     }
 
     return true;
 }
+
 
 
 // Setup mobile sidebar
@@ -577,14 +581,15 @@ async function saveItem(type) {
     if (type === 'food') {
         formData.price = parseFloat(document.getElementById('foodPrice').value) || 0;
         formData.restaurantId = document.getElementById('foodRestaurant').value;
-        
-        const cuisineSelect = document.getElementById('foodCuisine');
-        if (cuisineSelect) {
-            formData.cuisineId = cuisineSelect.value;
-            const selectedOption = cuisineSelect.options[cuisineSelect.selectedIndex];
-            formData.cuisine = selectedOption.text;
+
+        // Get the restaurant's country
+        if (formData.restaurantId) {
+            const restaurantDoc = await getDoc(doc(db, "restaurants", formData.restaurantId));
+            if (restaurantDoc.exists()) {
+                formData.countryId = restaurantDoc.data().countryId;
+            }
         }
-        
+
         const tasteSelect = document.getElementById('foodTaste');
         formData.taste = tasteSelect && tasteSelect.value === 'custom' 
             ? document.getElementById('foodCustomTaste').value.trim()
@@ -598,15 +603,15 @@ async function saveItem(type) {
         formData.comments = document.getElementById('foodComments').value.trim();
     }
     else if (type === 'fruit') {
-        formData.origin = getValue('fruitOrigin');
-        
+        formData.origin = document.getElementById('fruitCountry').value;
+
         const tasteSelect = document.getElementById('fruitTaste');
         formData.taste = tasteSelect && tasteSelect.value === '⚙️ Custom'
             ? getValue('fruitCustomTaste')
             : tasteSelect ? tasteSelect.value : '';
             
         formData.comments = getValue('fruitComments');
-    } 
+    }
     else if (type === 'restaurant') {
         formData.location = document.getElementById('restaurantLocation').value.trim();
         formData.countryId = document.getElementById('restaurantCountry').value;
@@ -614,10 +619,6 @@ async function saveItem(type) {
     else if (type === 'country') {
         formData.name = getValue('countryName');
         formData.code = getValue('countryCode');
-        formData.cuisines = getValue('countryCuisines')
-            .split(',')
-            .map(c => c.trim())
-            .filter(c => c);
     }
 
     // Validate required fields
@@ -649,6 +650,7 @@ async function saveItem(type) {
     }
 }
 
+
 // Add this helper function for toast notifications
 function showToast(message, isError = false) {
     const toast = document.createElement('div');
@@ -677,7 +679,6 @@ window.editFood = async function(id) {
                 restaurantSelect.value = food.restaurantId || '';
             }
             
-            // Set cuisine dropdown if it exists
             const cuisineSelect = document.getElementById('foodCuisine');
             if (cuisineSelect) {
                 cuisineSelect.value = food.cuisine || '';
@@ -753,12 +754,16 @@ window.editFruit = async function(id) {
             // Set basic fields
             document.getElementById('fruitName').value = fruit.name || '';
             document.getElementById('fruitPrice').value = fruit.price || '';
-            document.getElementById('fruitOrigin').value = fruit.origin || '';
             
-            // Remove quantity related code since we're removing this field
-            // const quantitySelect = document.getElementById('fruitQuantity');
-            // const customQuantityContainer = document.getElementById('customFruitQuantityContainer');
-            // const customQuantityInput = document.getElementById('fruitCustomQuantity');
+            // Set country dropdown (replaces origin)
+            const countrySelect = document.getElementById('fruitCountry');
+            if (countrySelect) {
+                // Load countries if not already loaded
+                if (countrySelect.options.length <= 1) {
+                    await loadCountriesForDropdowns();
+                }
+                countrySelect.value = fruit.origin || '';
+            }
 
             // Handle taste selection
             const tasteSelect = document.getElementById('fruitTaste');
@@ -973,10 +978,6 @@ onSnapshot(collection(db, "countries"), (snapshot) => {
     loadCountriesForDropdowns();
 });
 
-onSnapshot(collection(db, "cuisines"), (snapshot) => {
-    updateCuisinesTable(snapshot.docs);
-});
-
 // New functions
 if (typeof updateCountriesTable !== 'function') {
     async function updateCountriesTable(countries) {
@@ -1004,94 +1005,34 @@ if (typeof updateCountriesTable !== 'function') {
     }
 }
 
-
-async function updateCuisinesTable(cuisines) {
-    const tbody = document.getElementById('cuisinesTableBody');
-    const countriesSnapshot = await getDocs(collection(db, "countries"));
-    const countriesMap = {};
-    countriesSnapshot.forEach(doc => {
-        countriesMap[doc.id] = doc.data().name;
-    });
-
-    tbody.innerHTML = '';
-    
-    cuisines.forEach(cuisineDoc => {
-        const cuisine = cuisineDoc.data();
-        const row = `
-            <tr>
-                <td>${cuisine.name}</td>
-                <td>${countriesMap[cuisine.countryId] || 'Unknown'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="editCuisine('${cuisineDoc.id}')">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${cuisineDoc.id}', 'cuisines')">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-        tbody.insertAdjacentHTML('beforeend', row);
-    });
-}
-
 // Add new functions
 async function loadCountriesForDropdowns() {
     const countriesSnapshot = await getDocs(collection(db, "countries"));
-    const cuisineCountrySelect = document.getElementById('cuisineCountry');
-    const foodCuisineSelect = document.getElementById('foodCuisine');
     
-    // Clear and populate cuisine country dropdown
-    if (cuisineCountrySelect) {
-        cuisineCountrySelect.innerHTML = '<option value="">Select Country</option>';
+    // Update restaurant country dropdown
+    const restaurantCountrySelect = document.getElementById('restaurantCountry');
+    if (restaurantCountrySelect) {
+        restaurantCountrySelect.innerHTML = '<option value="">Select Country</option>';
         countriesSnapshot.forEach(doc => {
             const option = document.createElement('option');
             option.value = doc.id;
             option.textContent = doc.data().name;
-            cuisineCountrySelect.appendChild(option);
+            restaurantCountrySelect.appendChild(option);
         });
     }
     
-    // Clear and populate food cuisine dropdown
-    if (foodCuisineSelect) {
-        foodCuisineSelect.innerHTML = '<option value="">Select Cuisine</option>';
-        const cuisinesSnapshot = await getDocs(collection(db, "cuisines"));
-        cuisinesSnapshot.forEach(doc => {
+    // Update fruit country dropdown
+    const fruitCountrySelect = document.getElementById('fruitCountry');
+    if (fruitCountrySelect) {
+        fruitCountrySelect.innerHTML = '<option value="">Select Country</option>';
+        countriesSnapshot.forEach(doc => {
             const option = document.createElement('option');
             option.value = doc.id;
             option.textContent = doc.data().name;
-            foodCuisineSelect.appendChild(option);
+            fruitCountrySelect.appendChild(option);
         });
     }
 }
-
-document.getElementById('saveCuisineBtn')?.addEventListener('click', async function() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addCuisineModal'));
-    const isEdit = !!this.dataset.docId;
-    
-    const cuisineData = {
-        name: document.getElementById('cuisineName').value.trim(),
-        countryId: document.getElementById('cuisineCountry').value,
-        updatedAt: new Date()
-    };
-
-    try {
-        if (isEdit) {
-            await updateDoc(doc(db, "cuisines", this.dataset.docId), cuisineData);
-        } else {
-            cuisineData.createdAt = new Date();
-            await addDoc(collection(db, "cuisines"), cuisineData);
-        }
-        
-        modal.hide();
-        document.getElementById('cuisineForm').reset();
-        this.textContent = 'Save Cuisine';
-        delete this.dataset.docId;
-    } catch (error) {
-        console.error("Error saving cuisine:", error);
-        alert("Error saving cuisine. Please try again.");
-    }
-});
 
 function updateCountriesTable(countries) {
     const tbody = document.getElementById('countriesTableBody');
@@ -1260,38 +1201,3 @@ document.getElementById('saveCountryBtn')?.addEventListener('click', async funct
         alert("Error saving country. Please try again.");
     }
 });
-
-// Add editCuisine function
-window.editCuisine = async function(id) {
-    try {
-        const docRef = doc(db, "cuisines", id);
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-            const cuisine = docSnap.data();
-            
-            // Safely set values
-            const nameField = document.getElementById('cuisineName');
-            if (nameField) nameField.value = cuisine.name || '';
-            
-            // Update modal UI
-            const modalLabel = document.getElementById('addCuisineModalLabel');
-            const saveBtn = document.getElementById('saveCuisineBtn');
-            
-            if (modalLabel) modalLabel.textContent = 'Edit Cuisine';
-            if (saveBtn) {
-                saveBtn.textContent = 'Update Cuisine';
-                saveBtn.dataset.docId = id;
-            }
-            
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('addCuisineModal'));
-            modal.show();
-        } else {
-            alert("Cuisine not found!");
-        }
-    } catch (error) {
-        console.error("Error getting cuisine document:", error);
-        alert("Error loading cuisine data. Please try again.");
-    }
-};
