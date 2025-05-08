@@ -582,6 +582,12 @@ async function saveItem(type) {
         formData.price = parseFloat(document.getElementById('foodPrice').value) || 0;
         formData.restaurantId = document.getElementById('foodRestaurant').value;
 
+        // Get the selected country from the dropdown
+    const countrySelect = document.getElementById('restaurantCountry');
+    if (countrySelect) {
+        formData.countryId = countrySelect.value;
+    }
+
         // Get the restaurant's country
         if (formData.restaurantId) {
             const restaurantDoc = await getDoc(doc(db, "restaurants", formData.restaurantId));
@@ -665,30 +671,47 @@ window.editFood = async function(id) {
     try {
         const docRef = doc(db, "foods", id);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
             const food = docSnap.data();
-            
+
             // Set basic fields
             document.getElementById('foodName').value = food.name || '';
             document.getElementById('foodPrice').value = food.price || '';
-            
-            // Set restaurant dropdown if it exists
+
+            // Set restaurant dropdown
             const restaurantSelect = document.getElementById('foodRestaurant');
             if (restaurantSelect) {
                 restaurantSelect.value = food.restaurantId || '';
+
+                // Load and set country if restaurant ID exists
+                if (food.restaurantId) {
+                    const restaurantDoc = await getDoc(doc(db, "restaurants", food.restaurantId));
+                    if (restaurantDoc.exists()) {
+                        const restaurant = restaurantDoc.data();
+                        const countrySelect = document.getElementById('restaurantCountry');
+
+                        // Ensure countries are loaded before setting
+                        await loadCountriesForDropdowns();
+
+                        if (countrySelect) {
+                            countrySelect.value = restaurant.countryId || '';
+                        }
+                    }
+                }
             }
-            
+
+            // Set cuisine if exists
             const cuisineSelect = document.getElementById('foodCuisine');
             if (cuisineSelect) {
                 cuisineSelect.value = food.cuisine || '';
             }
-            
-            // Handle taste selection
+
+            // Handle taste
             const tasteSelect = document.getElementById('foodTaste');
             const customTasteContainer = document.getElementById('customTasteContainer');
             const customTasteInput = document.getElementById('foodCustomTaste');
-            
+
             if (tasteSelect && customTasteContainer && customTasteInput) {
                 if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.taste)) {
                     tasteSelect.value = food.taste;
@@ -699,12 +722,12 @@ window.editFood = async function(id) {
                     customTasteContainer.style.display = 'block';
                 }
             }
-            
-            // Handle quantity selection
+
+            // Handle quantity
             const quantitySelect = document.getElementById('foodQuantity');
             const customQuantityContainer = document.getElementById('customQuantityContainer');
             const customQuantityInput = document.getElementById('foodCustomQuantity');
-            
+
             if (quantitySelect && customQuantityContainer && customQuantityInput) {
                 if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.quantity)) {
                     quantitySelect.value = food.quantity;
@@ -715,13 +738,13 @@ window.editFood = async function(id) {
                     customQuantityContainer.style.display = 'block';
                 }
             }
-            
-            // Set comments if the field exists
+
+            // Set comments
             const commentsField = document.getElementById('foodComments');
             if (commentsField) {
                 commentsField.value = food.comments || '';
             }
-            
+
             // Update modal UI
             document.getElementById('addFoodModalLabel').textContent = 'Edit Food';
             const saveBtn = document.getElementById('saveFoodBtn');
@@ -729,7 +752,7 @@ window.editFood = async function(id) {
                 saveBtn.textContent = 'Update Food';
                 saveBtn.dataset.docId = id;
             }
-            
+
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('addFoodModal'));
             modal.show();
@@ -741,6 +764,7 @@ window.editFood = async function(id) {
         alert("Error loading food data. Please try again.");
     }
 };
+
 
 // Edit fruit
 window.editFruit = async function(id) {
@@ -1009,29 +1033,33 @@ if (typeof updateCountriesTable !== 'function') {
 async function loadCountriesForDropdowns() {
     const countriesSnapshot = await getDocs(collection(db, "countries"));
     
-    // Update restaurant country dropdown
-    const restaurantCountrySelect = document.getElementById('restaurantCountry');
-    if (restaurantCountrySelect) {
-        restaurantCountrySelect.innerHTML = '<option value="">Select Country</option>';
-        countriesSnapshot.forEach(doc => {
-            const option = document.createElement('option');
-            option.value = doc.id;
-            option.textContent = doc.data().name;
-            restaurantCountrySelect.appendChild(option);
-        });
-    }
+    // Update all country dropdowns
+    const countrySelectors = [
+        'restaurantCountry', 
+        'fruitCountry'
+        // add any other country dropdown IDs here
+    ];
     
-    // Update fruit country dropdown
-    const fruitCountrySelect = document.getElementById('fruitCountry');
-    if (fruitCountrySelect) {
-        fruitCountrySelect.innerHTML = '<option value="">Select Country</option>';
-        countriesSnapshot.forEach(doc => {
-            const option = document.createElement('option');
-            option.value = doc.id;
-            option.textContent = doc.data().name;
-            fruitCountrySelect.appendChild(option);
-        });
-    }
+    countrySelectors.forEach(selectorId => {
+        const select = document.getElementById(selectorId);
+        if (select) {
+            // Preserve current value if editing
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select Country</option>';
+            
+            countriesSnapshot.forEach(doc => {
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = doc.data().name;
+                select.appendChild(option);
+            });
+            
+            // Restore previous value if it exists
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+    });
 }
 
 function updateCountriesTable(countries) {
@@ -1199,5 +1227,31 @@ document.getElementById('saveCountryBtn')?.addEventListener('click', async funct
     } catch (error) {
         console.error("Error saving country:", error);
         alert("Error saving country. Please try again.");
+    }
+});
+
+// In your restaurant change handler:
+document.getElementById('foodRestaurant')?.addEventListener('change', async function() {
+    try {
+        const restaurantId = this.value;
+        const countrySelect = document.getElementById('restaurantCountry');
+        
+        if (restaurantId && countrySelect) {
+            const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
+            if (restaurantDoc.exists()) {
+                const restaurant = restaurantDoc.data();
+                
+                // Ensure countries are loaded
+                await loadCountriesForDropdowns();
+                
+                // Set the country value
+                countrySelect.value = restaurant.countryId || '';
+            } else {
+                console.warn("Restaurant not found:", restaurantId);
+                countrySelect.value = '';
+            }
+        }
+    } catch (error) {
+        console.error("Error loading restaurant:", error);
     }
 });
