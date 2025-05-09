@@ -672,98 +672,105 @@ window.editFood = async function(id) {
         const docRef = doc(db, "foods", id);
         const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-            const food = docSnap.data();
-
-            // Set basic fields
-            document.getElementById('foodName').value = food.name || '';
-            document.getElementById('foodPrice').value = food.price || '';
-
-            // Set restaurant dropdown
-            const restaurantSelect = document.getElementById('foodRestaurant');
-            if (restaurantSelect) {
-                restaurantSelect.value = food.restaurantId || '';
-
-                // Load and set country if restaurant ID exists
-                if (food.restaurantId) {
-                    const restaurantDoc = await getDoc(doc(db, "restaurants", food.restaurantId));
-                    if (restaurantDoc.exists()) {
-                        const restaurant = restaurantDoc.data();
-                        const countrySelect = document.getElementById('restaurantCountry');
-
-                        // Ensure countries are loaded before setting
-                        await loadCountriesForDropdowns();
-
-                        if (countrySelect) {
-                            countrySelect.value = restaurant.countryId || '';
-                        }
-                    }
-                }
-            }
-
-            // Set cuisine if exists
-            const cuisineSelect = document.getElementById('foodCuisine');
-            if (cuisineSelect) {
-                cuisineSelect.value = food.cuisine || '';
-            }
-
-            // Handle taste
-            const tasteSelect = document.getElementById('foodTaste');
-            const customTasteContainer = document.getElementById('customTasteContainer');
-            const customTasteInput = document.getElementById('foodCustomTaste');
-
-            if (tasteSelect && customTasteContainer && customTasteInput) {
-                if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.taste)) {
-                    tasteSelect.value = food.taste;
-                    customTasteContainer.style.display = 'none';
-                } else {
-                    tasteSelect.value = 'custom';
-                    customTasteInput.value = food.taste || '';
-                    customTasteContainer.style.display = 'block';
-                }
-            }
-
-            // Handle quantity
-            const quantitySelect = document.getElementById('foodQuantity');
-            const customQuantityContainer = document.getElementById('customQuantityContainer');
-            const customQuantityInput = document.getElementById('foodCustomQuantity');
-
-            if (quantitySelect && customQuantityContainer && customQuantityInput) {
-                if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.quantity)) {
-                    quantitySelect.value = food.quantity;
-                    customQuantityContainer.style.display = 'none';
-                } else {
-                    quantitySelect.value = '⚙️ Custom';
-                    customQuantityInput.value = food.quantity || '';
-                    customQuantityContainer.style.display = 'block';
-                }
-            }
-
-            // Set comments
-            const commentsField = document.getElementById('foodComments');
-            if (commentsField) {
-                commentsField.value = food.comments || '';
-            }
-
-            // Update modal UI
-            document.getElementById('addFoodModalLabel').textContent = 'Edit Food';
-            const saveBtn = document.getElementById('saveFoodBtn');
-            if (saveBtn) {
-                saveBtn.textContent = 'Update Food';
-                saveBtn.dataset.docId = id;
-            }
-
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('addFoodModal'));
-            modal.show();
-        } else {
+        if (!docSnap.exists()) {
             alert("Food not found!");
+            return;
         }
+
+        const food = docSnap.data();
+
+        // Set basic fields
+        document.getElementById('foodName').value = food.name || '';
+        document.getElementById('foodPrice').value = food.price || '';
+
+        const restaurantSelect = document.getElementById('foodRestaurant');
+        const countrySelect = document.getElementById('foodRestaurantCountry');
+
+        if (restaurantSelect) {
+            restaurantSelect.value = food.restaurantId || '';
+        }
+
+        // Load country dropdowns first
+        await loadCountriesForDropdowns();
+
+        // Set country from food data if available
+        if (countrySelect) {
+            if (food.countryId) {
+                countrySelect.value = food.countryId;
+            } else if (food.restaurantId) {
+                // fallback to restaurant's countryId
+                const restaurantDoc = await getDoc(doc(db, "restaurants", food.restaurantId));
+                if (restaurantDoc.exists()) {
+                    const restaurant = restaurantDoc.data();
+                    countrySelect.value = restaurant.countryId || '';
+                } else {
+                    countrySelect.value = '';
+                }
+            }
+        }
+
+        // Set cuisine if exists
+        const cuisineSelect = document.getElementById('foodCuisine');
+        if (cuisineSelect) {
+            cuisineSelect.value = food.cuisine || '';
+        }
+
+        // Handle taste
+        const tasteSelect = document.getElementById('foodTaste');
+        const customTasteContainer = document.getElementById('customTasteContainer');
+        const customTasteInput = document.getElementById('foodCustomTaste');
+
+        if (tasteSelect && customTasteContainer && customTasteInput) {
+            if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.taste)) {
+                tasteSelect.value = food.taste;
+                customTasteContainer.style.display = 'none';
+            } else {
+                tasteSelect.value = 'custom';
+                customTasteInput.value = food.taste || '';
+                customTasteContainer.style.display = 'block';
+            }
+        }
+
+        // Handle quantity
+        const quantitySelect = document.getElementById('foodQuantity');
+        const customQuantityContainer = document.getElementById('customQuantityContainer');
+        const customQuantityInput = document.getElementById('foodCustomQuantity');
+
+        if (quantitySelect && customQuantityContainer && customQuantityInput) {
+            if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.quantity)) {
+                quantitySelect.value = food.quantity;
+                customQuantityContainer.style.display = 'none';
+            } else {
+                quantitySelect.value = '⚙️ Custom';
+                customQuantityInput.value = food.quantity || '';
+                customQuantityContainer.style.display = 'block';
+            }
+        }
+
+        // Set comments
+        const commentsField = document.getElementById('foodComments');
+        if (commentsField) {
+            commentsField.value = food.comments || '';
+        }
+
+        // Update modal UI
+        document.getElementById('addFoodModalLabel').textContent = 'Edit Food';
+        const saveBtn = document.getElementById('saveFoodBtn');
+        if (saveBtn) {
+            saveBtn.textContent = 'Update Food';
+            saveBtn.dataset.docId = id;
+        }
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('addFoodModal'));
+        modal.show();
+
     } catch (error) {
         console.error("Error getting food document:", error);
         alert("Error loading food data. Please try again.");
     }
 };
+
 
 
 // Edit fruit
@@ -1031,33 +1038,33 @@ if (typeof updateCountriesTable !== 'function') {
 
 // Add new functions
 async function loadCountriesForDropdowns() {
-  const countriesSnapshot = await getDocs(collection(db, "countries"));
-
-  const countrySelectors = [
-    'foodRestaurantCountry', 
-    'restaurantCountry',
-    'fruitCountry'
-  ];
-
-  countrySelectors.forEach(selectorId => {
-    const select = document.getElementById(selectorId);
-    if (select) {
-      const currentValue = select.value;
-      select.innerHTML = '<option value="">Select Country</option>';
-
-      countriesSnapshot.forEach(doc => {
-        const option = document.createElement('option');
-        option.value = doc.id;
-        option.textContent = doc.data().name;
-        select.appendChild(option);
-      });
-
-      // Restore previous value
-      if (currentValue) {
-        select.value = currentValue;
-      }
-    }
-  });
+    const countriesSnapshot = await getDocs(collection(db, "countries"));
+    const countrySelectors = [
+        'foodRestaurantCountry', 
+        'restaurantCountry',
+        'fruitCountry'
+    ];
+    
+    countrySelectors.forEach(selectorId => {
+        const select = document.getElementById(selectorId);
+        if (select) {
+            // Preserve current value if editing
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select Country</option>';
+            
+            countriesSnapshot.forEach(doc => {
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = doc.data().name;
+                select.appendChild(option);
+            });
+            
+            // Restore previous value if it exists
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+    });
 }
 
 
