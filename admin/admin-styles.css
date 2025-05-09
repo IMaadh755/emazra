@@ -778,6 +778,12 @@ input[type="color"]::-webkit-color-swatch {
     gap: 1.5rem;
 }
 
+#foodCustomTaste::placeholder,
+#foodCustomQuantity::placeholder {
+  color: #a4a4a4; /* Change this to any color you want */
+  opacity: 1;     /* Optional: ensures consistent color across browsers */
+}
+
 /* Update the sidebar styles for mobile */
 @media (max-width: 991.98px) {
     .sidebar {
