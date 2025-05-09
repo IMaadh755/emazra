@@ -1031,36 +1031,35 @@ if (typeof updateCountriesTable !== 'function') {
 
 // Add new functions
 async function loadCountriesForDropdowns() {
-    const countriesSnapshot = await getDocs(collection(db, "countries"));
-    
-    // Update all country dropdowns
-    const countrySelectors = [
-        'restaurantCountry', 
-        'fruitCountry'
-        // add any other country dropdown IDs here
-    ];
-    
-    countrySelectors.forEach(selectorId => {
-        const select = document.getElementById(selectorId);
-        if (select) {
-            // Preserve current value if editing
-            const currentValue = select.value;
-            select.innerHTML = '<option value="">Select Country</option>';
-            
-            countriesSnapshot.forEach(doc => {
-                const option = document.createElement('option');
-                option.value = doc.id;
-                option.textContent = doc.data().name;
-                select.appendChild(option);
-            });
-            
-            // Restore previous value if it exists
-            if (currentValue) {
-                select.value = currentValue;
-            }
-        }
-    });
+  const countriesSnapshot = await getDocs(collection(db, "countries"));
+
+  const countrySelectors = [
+    'foodRestaurantCountry', 
+    'restaurantCountry',
+    'fruitCountry'
+  ];
+
+  countrySelectors.forEach(selectorId => {
+    const select = document.getElementById(selectorId);
+    if (select) {
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">Select Country</option>';
+
+      countriesSnapshot.forEach(doc => {
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = doc.data().name;
+        select.appendChild(option);
+      });
+
+      // Restore previous value
+      if (currentValue) {
+        select.value = currentValue;
+      }
+    }
+  });
 }
+
 
 function updateCountriesTable(countries) {
     const tbody = document.getElementById('countriesTableBody');
@@ -1232,26 +1231,22 @@ document.getElementById('saveCountryBtn')?.addEventListener('click', async funct
 
 // In your restaurant change handler:
 document.getElementById('foodRestaurant')?.addEventListener('change', async function() {
-    try {
-        const restaurantId = this.value;
-        const countrySelect = document.getElementById('restaurantCountry');
-        
-        if (restaurantId && countrySelect) {
-            const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
-            if (restaurantDoc.exists()) {
-                const restaurant = restaurantDoc.data();
-                
-                // Ensure countries are loaded
-                await loadCountriesForDropdowns();
-                
-                // Set the country value
-                countrySelect.value = restaurant.countryId || '';
-            } else {
-                console.warn("Restaurant not found:", restaurantId);
-                countrySelect.value = '';
-            }
-        }
-    } catch (error) {
-        console.error("Error loading restaurant:", error);
+  try {
+    const restaurantId = this.value;
+    const countrySelect = document.getElementById('foodRestaurantCountry');
+
+    if (restaurantId && countrySelect) {
+      const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
+      if (restaurantDoc.exists()) {
+        const restaurant = restaurantDoc.data();
+        await loadCountriesForDropdowns();
+        countrySelect.value = restaurant.countryId || '';
+      } else {
+        console.warn("Restaurant not found:", restaurantId);
+        countrySelect.value = '';
+      }
     }
+  } catch (error) {
+    console.error("Error loading restaurant:", error);
+  }
 });
