@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foody - Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="results.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-utensils me-2"></i>Foody
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="bi bi-house-door me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="results.html?show=all"><i class="bi bi-grid me-1"></i> Browse All</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Results Content -->
+    <main class="main-content">
+        <div class="container results-container">
+            <div class="back-button" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i> Back
+            </div>
+            
+            <!-- Add search box for live filtering -->
+            <div class="search-box mb-4">
+                <i class="bi bi-search"></i>
+                <input type="text" id="liveSearchInput" placeholder="Filter results...">
+                <button class="btn btn-outline-secondary" id="clearSearchBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="results-header">
+                <h1 class="results-title" id="resultsTitle">Results</h1>
+                <div class="results-count" id="resultsCount">0 items</div>
+            </div>
+            
+            <div class="items-grid" id="resultsContainer">
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading results...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Results page specific code
+        let allFilteredItems = []; // Store all items for live search
+        
+        function loadResults() {
+            const params = new URLSearchParams(window.location.search);
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsTitle = document.getElementById('resultsTitle');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            let title = 'All Items';
+            let filter = { type: 'all' };
+            
+            if (params.get('country')) {
+                const countryId = params.get('country');
+                const countryName = params.get('name') || 'Selected Country';
+                title = `Restaurants in ${countryName}`;
+                filter = { type: 'country', value: countryId };
+            }
+            else if (params.get('location')) {
+                title = `Restaurants in ${params.get('location')}`;
+                filter = { type: 'location', value: params.get('location') };
+            }
+            else if (params.get('category')) {
+                title = `${params.get('category').charAt(0).toUpperCase() + params.get('category').slice(1)} Items`;
+                filter = { type: 'category', value: params.get('category').toLowerCase() };
+            }
+            else if (params.get('search')) {
+                title = `Search Results for "${params.get('search')}"`;
+                filter = { type: 'search', value: params.get('search').toLowerCase() };
+            }
+            
+            resultsTitle.textContent = title;
+            
+            // Show loading state
+            resultsContainer.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading results...</p>
+                </div>
+            `;
+            
+            // Ensure all data is loaded first
+            Promise.all([
+                db.collection("foods").get(),
+                db.collection("restaurants").get(),
+                db.collection("countries").get()
+            ]).then(([foodsSnapshot, restaurantsSnapshot, countriesSnapshot]) => {
+                allFoodItems = foodsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                allRestaurants = restaurantsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                allCountries = countriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Link the data
+                linkFoodsWithRestaurants();
+                
+                // Now apply the filter
+                allFilteredItems = applyFilter(filter);
+                
+                displayResults(allFilteredItems);
+                
+                // Setup live search
+                setupLiveSearch();
+            }).catch(error => {
+                console.error("Error loading data:", error);
+                resultsContainer.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Failed to load results</p>
+                        <button class="btn btn-outline-primary mt-2" onclick="window.location.reload()">Try Again</button>
+                    </div>
+                `;
+            });
+        }
+        
+        function displayResults(items) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            if (items.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-utensils"></i>
+                        <p>No results found</p>
+                        <button class="btn btn-outline-primary mt-2" onclick="window.location.href='index.html'">Back to Home</button>
+                    </div>
+                `;
+                resultsCount.textContent = `0 items`;
+                return;
+            }
+            
+            resultsCount.textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
+            
+            // Group by restaurant
+            const grouped = groupItemsByRestaurant(items);
+            
+            // Display results
+            resultsContainer.innerHTML = '';
+            Object.values(grouped).forEach(group => {
+                const restaurantCard = createRestaurantCard(group);
+                restaurantCard.classList.add('high-rating'); // Always expanded on results page
+                resultsContainer.appendChild(restaurantCard);
+            });
+        }
+        
+        function setupLiveSearch() {
+    const liveSearchInput = document.getElementById('liveSearchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    
+    liveSearchInput.addEventListener('input', () => {
+        const searchTerm = liveSearchInput.value.trim().toLowerCase();
+        
+        if (searchTerm === '') {
+            displayResults(allFilteredItems);
+            clearSearchBtn.style.display = 'none';
+            return;
+        }
+        
+        clearSearchBtn.style.display = 'block';
+        
+        const filtered = allFilteredItems.filter(item => 
+            item.name.toLowerCase().includes(searchTerm) ||
+            (item.restaurantName && item.restaurantName.toLowerCase().includes(searchTerm)) ||
+            (item.comments && item.comments.toLowerCase().includes(searchTerm)) ||
+            (item.category && item.category.toLowerCase().includes(searchTerm))
+        );
+        
+        displayResults(filtered);
+    });
+    
+    clearSearchBtn.addEventListener('click', () => {
+        liveSearchInput.value = '';
+        displayResults(allFilteredItems);
+        clearSearchBtn.style.display = 'none';
+    });
+    
+    // Hide clear button initially
+    clearSearchBtn.style.display = 'none';
+}
+        
+        document.addEventListener('DOMContentLoaded', loadResults);
+    </script>
+</body>
+</html>

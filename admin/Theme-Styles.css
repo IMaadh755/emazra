@@ -1,0 +1,119 @@
+/* Theme Settings Styles */
+.theme-settings-container {
+    padding: 1rem;
+}
+
+.theme-settings-container {
+    max-width: auto;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.color-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.color-option label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.color-preview {
+    width: 100%;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid var(--glass-border);
+}
+
+.font-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--glass-border);
+}
+
+.font-sample {
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    transition: font-family 0.3s ease;
+}
+
+.theme-preview {
+    height: calc(100% - 50px);
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-header {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.preview-header small {
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.preview-content {
+    padding: 1rem;
+    color: var(--text-primary);
+    flex-grow: 1;
+}
+
+.preview-content small {
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.5rem;
+}
+
+.preview-table {
+    margin: 1rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table-header {
+    background: var(--table-heading);
+    padding: 0.75rem 1rem;
+    color: white;
+    font-weight: 500;
+}
+
+.table-row {
+    padding: 0.75rem 1rem;
+    background: var(--table-color);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.btn-outline {
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+    background: transparent;
+}
