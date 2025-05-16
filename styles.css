@@ -331,7 +331,8 @@ a {
 
 .food-details {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column; /* Stack vertically */
+    gap: 8px; /* Space between quantity and taste */
     margin-bottom: 15px;
 }
 
@@ -340,6 +341,39 @@ a {
     align-items: center;
     gap: 5px;
     font-size: 0.9rem;
+}
+
+/* Add labels before the values */
+.food-quantity::before {
+    content: "Quantity: ";
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.food-taste::before {
+    content: "Taste: ";
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+/* Icon styling */
+.food-quantity i {
+    color: var(--secondary-color);
+}
+
+.food-taste i {
+    color: var(--accent-color);
+}
+
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+    .food-details {
+        gap: 6px;
+    }
+    
+    .food-quantity, .food-taste {
+        font-size: 0.85rem;
+    }
 }
 
 .food-comment {
