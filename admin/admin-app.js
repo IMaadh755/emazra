@@ -286,31 +286,36 @@ function updateRecentRestaurants(restaurants) {
 async function updateFoodsTable(foods) {
     if (!foodsTableBody) return;
     
-    // Get all countries
+    // Get all countries and restaurants as before
     const countriesSnapshot = await getDocs(collection(db, "countries"));
     const countriesMap = {};
     countriesSnapshot.forEach(doc => {
         countriesMap[doc.id] = doc.data().name;
     });
 
-    foodsTableBody.innerHTML = '';
     const restaurantsSnapshot = await getDocs(collection(db, "restaurants"));
     const restaurantsMap = {};
-    const restaurantCountries = {};
     restaurantsSnapshot.forEach(doc => {
         restaurantsMap[doc.id] = doc.data().name;
-        restaurantCountries[doc.id] = doc.data().countryId;
     });
 
+    foodsTableBody.innerHTML = '';
+    
     foods.forEach((food) => {
         const row = document.createElement('tr');
+        
+        // Store raw data in data attributes for searching
         row.innerHTML = `
-            <td data-label="Name">${food.name || '-'}</td>
-            <td data-label="Price">QR ${(food.price || 0).toFixed(2)}</td>
-            <td data-label="Restaurant">${restaurantsMap[food.restaurantId] || 'Unknown'}</td>
-            <td data-label="Taste">${food.taste || '-'}</td>
-            <td data-label="Country">${countriesMap[food.countryId] || 'Unknown'}</td>
-            <td data-label="Quantity">${food.quantity || '-'}</td>
+            <td data-label="Name" data-search="${food.name.toLowerCase()}">${food.name || '-'}</td>
+            <td data-label="Price" data-search="${food.price || 0}">QR ${(food.price || 0).toFixed(2)}</td>
+            <td data-label="Restaurant" data-search="${restaurantsMap[food.restaurantId]?.toLowerCase() || 'unknown'}">
+                ${restaurantsMap[food.restaurantId] || 'Unknown'}
+            </td>
+            <td data-label="Taste" data-search="${food.taste?.toLowerCase() || '-'}">${food.taste || '-'}</td>
+            <td data-label="Country" data-search="${countriesMap[food.countryId]?.toLowerCase() || 'unknown'}">
+                ${countriesMap[food.countryId] || 'Unknown'}
+            </td>
+            <td data-label="Quantity" data-search="${food.quantity?.toLowerCase() || '-'}">${food.quantity || '-'}</td>
             <td data-label="Actions">
                 <button class="btn btn-sm btn-outline-primary btn-action" onclick="editFood('${food.id}')">
                     <i class="bi bi-pencil"></i> Edit
@@ -465,9 +470,37 @@ function setupEventListeners() {
         foodSearch.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const rows = foodsTableBody.querySelectorAll('tr');
+            
             rows.forEach(row => {
-                const name = row.cells[0].textContent.toLowerCase();
-                row.style.display = name.includes(searchTerm) ? '' : 'none';
+                let found = false;
+                // Search specific columns with different matching logic
+                
+                // Name (exact match)
+                if (row.cells[0].textContent.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                }
+                // Price (numeric match)
+                else if (row.cells[1].textContent.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                }
+                // Restaurant (partial match)
+                else if (row.cells[2].textContent.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                }
+                // Taste (emoji or text match)
+                else if (row.cells[3].textContent.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                }
+                // Country (partial match)
+                else if (row.cells[4].textContent.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                }
+                // Quantity (partial match)
+                else if (row.cells[5].textContent.toLowerCase().includes(searchTerm)) {
+                    found = true;
+                }
+                
+                row.style.display = found ? '' : 'none';
             });
         });
     }
