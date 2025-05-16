@@ -445,21 +445,19 @@
                     
                         <!-- Restaurant -->
                         <div class="row gx-3 gy-2 align-items-center mt-2">
-                            <div class="col-md-5">
-                                <label for="foodRestaurant" class="form-label">Restaurant</label>
-                                <select class="form-select" id="foodRestaurant" required>
-                                    <option value="">Select Restaurant</option>
-                                </select>
-                            </div>
-                            <input type="hidden" id="foodCountry">
-
-                            <div class="col-md-5">
-                                <label for="restaurantCountry" class="form-label">Country</label>
-                                <select class="form-select" id="restaurantCountry" required>
-                                    <option value="">Select Country</option>
-                                </select>
-                            </div>
-                        </div>
+    <div class="col-md-5">
+        <label for="foodRestaurant" class="form-label">Restaurant</label>
+        <select class="form-select" id="foodRestaurant" required>
+            <option value="">Select Restaurant</option>
+        </select>
+    </div>
+    <div class="col-md-5">
+        <label class="form-label">Country</label>
+        <div id="foodRestaurantCountryDisplay" class="form-control-plaintext">
+            Select a restaurant first
+        </div>
+    </div>
+</div>
                     
                         <!-- Taste Section -->
                         <div class="row gx-3 gy-2 align-items-center mt-2">
@@ -613,11 +611,11 @@
                             <input type="text" class="form-control" id="restaurantLocation" required>
                         </div>
                         <div class="mb-3">
-                            <label for="restaurantCountry" class="form-label">Country</label>
-                            <select class="form-select" id="restaurantCountry" required>
-                                <option value="">Select Country</option>
-                            </select>
-                        </div>
+                        <label for="addRestaurantCountry" class="form-label">Country</label>
+                        <select class="form-select" id="addRestaurantCountry" required>
+                        <option value="">Select Country</option>
+                    </select>
+                    </div>
                     </form>
                 </div>
                 <div class="modal-footer">
