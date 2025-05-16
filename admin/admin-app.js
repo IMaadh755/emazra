@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTasteSelectors(); // Now it's safe and works correctly
     setupMobileSidebar();
     initTheme();
+    loadRestaurantCountries();
 
     // You can remove this block if it's already handled inside setupTasteSelectors()
     const quantitySelect = document.getElementById('foodQuantity');
@@ -401,11 +402,35 @@ async function loadRestaurantsForDropdown() {
     
     const querySnapshot = await getDocs(collection(db, "restaurants"));
     foodRestaurantSelect.innerHTML = '<option value="">Select Restaurant</option>';
+    
+    // Also get countries for reference
+    const countriesSnapshot = await getDocs(collection(db, "countries"));
+    const countriesMap = {};
+    countriesSnapshot.forEach(doc => {
+        countriesMap[doc.id] = doc.data().name;
+    });
+
     querySnapshot.forEach((doc) => {
+        const restaurant = doc.data();
         const option = document.createElement('option');
         option.value = doc.id;
-        option.textContent = doc.data().name;
+        option.textContent = restaurant.name;
+        // Store country ID as data attribute
+        option.dataset.countryId = restaurant.countryId;
         foodRestaurantSelect.appendChild(option);
+    });
+
+    // Add event listener for restaurant selection
+    foodRestaurantSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const countryId = selectedOption.dataset.countryId;
+        const countryDisplay = document.getElementById('foodRestaurantCountryDisplay');
+        
+        if (countryId && countriesMap[countryId]) {
+            countryDisplay.textContent = countriesMap[countryId];
+        } else {
+            countryDisplay.textContent = "Unknown country";
+        }
     });
 }
 
@@ -579,17 +604,17 @@ async function saveItem(type) {
 
     // Add type-specific fields
     if (type === 'food') {
-        formData.price = parseFloat(document.getElementById('foodPrice').value) || 0;
-        formData.restaurantId = document.getElementById('foodRestaurant').value;
-        formData.category = document.getElementById('foodCategory').value.trim() || 'Uncategorized';
+    formData.price = parseFloat(document.getElementById('foodPrice').value) || 0;
+    formData.restaurantId = document.getElementById('foodRestaurant').value;
+    formData.category = document.getElementById('foodCategory').value.trim() || 'Uncategorized';
 
-        // Get the restaurant's country
-        if (formData.restaurantId) {
-            const restaurantDoc = await getDoc(doc(db, "restaurants", formData.restaurantId));
-            if (restaurantDoc.exists()) {
-                formData.countryId = restaurantDoc.data().countryId;
-            }
+    // Get the restaurant's country automatically
+    if (formData.restaurantId) {
+        const restaurantDoc = await getDoc(doc(db, "restaurants", formData.restaurantId));
+        if (restaurantDoc.exists()) {
+            formData.countryId = restaurantDoc.data().countryId;
         }
+    }
 
         const tasteSelect = document.getElementById('foodTaste');
         formData.taste = tasteSelect && tasteSelect.value === 'custom' 
@@ -614,9 +639,9 @@ async function saveItem(type) {
         formData.comments = getValue('fruitComments');
     }
     else if (type === 'restaurant') {
-        formData.location = document.getElementById('restaurantLocation').value.trim();
-        formData.countryId = document.getElementById('restaurantCountry').value;
-    }
+    formData.location = document.getElementById('restaurantLocation').value.trim();
+    formData.countryId = document.getElementById('addRestaurantCountry').value; // Updated ID
+}
     else if (type === 'country') {
         formData.name = getValue('countryName');
         formData.code = getValue('countryCode');
@@ -828,7 +853,7 @@ window.editRestaurant = async function(id) {
             document.getElementById('restaurantLocation').value = restaurant.location || '';
             
             // Set country dropdown
-            const countrySelect = document.getElementById('restaurantCountry');
+            const countrySelect = document.getElementById('addRestaurantCountry');
             if (countrySelect) {
                 // Load countries if not already loaded
                 if (countrySelect.options.length <= 1) {
@@ -1066,7 +1091,7 @@ function updateCountriesTable(countries) {
 
 // Helper function to load countries for restaurant dropdown
 async function loadRestaurantCountries() {
-    const select = document.getElementById('restaurantCountry');
+    const select = document.getElementById('addRestaurantCountry');
     if (!select) return;
     
     select.innerHTML = '<option value="">Select Country</option>';
@@ -1203,3 +1228,34 @@ document.getElementById('saveCountryBtn')?.addEventListener('click', async funct
         alert("Error saving country. Please try again.");
     }
 });
+
+async function loadRestaurantCountry(restaurantId) {
+    const countrySelect = document.getElementById('foodRestaurantCountry');
+    if (!restaurantId) {
+        countrySelect.innerHTML = '<option value="">Select Restaurant First</option>';
+        countrySelect.disabled = true;
+        return;
+    }
+
+    try {
+        const restaurantDoc = await getDoc(doc(db, "restaurants", restaurantId));
+        if (restaurantDoc.exists()) {
+            const restaurant = restaurantDoc.data();
+            const countriesSnapshot = await getDocs(collection(db, "countries"));
+            
+            countrySelect.innerHTML = '';
+            countriesSnapshot.forEach(doc => {
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = doc.data().name;
+                option.selected = doc.id === restaurant.countryId;
+                countrySelect.appendChild(option);
+            });
+            countrySelect.disabled = false;
+        }
+    } catch (error) {
+        console.error("Error loading restaurant country:", error);
+        countrySelect.innerHTML = '<option value="">Error loading country</option>';
+        countrySelect.disabled = true;
+    }
+}
