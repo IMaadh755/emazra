@@ -319,13 +319,13 @@ function createFoodItemCard(item) {
                 <div class="food-price">QR ${item.price?.toFixed(2) || '0.00'}</div>
             </div>
             <div class="food-details">
-                <div class="food-quantity">
-                    <i class="fas fa-utensils"></i>
-                    ${item.quantity || 'N/A'}
-                </div>
                 <div class="food-taste">
                     <i class="fas fa-star"></i>
                     ${item.taste || 'N/A'}
+                </div>
+                <div class="food-quantity">
+                    <i class="fas fa-utensils"></i>
+                    ${item.quantity || 'N/A'}
                 </div>
             </div>
             ${item.comments ? `<div class="food-comment">${item.comments}</div>` : ''}
