@@ -1,7 +1,7 @@
 // PWA Installation Prompt
 let deferredPrompt;
 const installButton = document.createElement('button');
-installButton.innerHTML = 'Install Foody App';
+installButton.innerHTML = 'Install 1st-Bite App';
 installButton.className = 'btn btn-primary pwa-install-btn';
 installButton.style.display = 'none';
 
@@ -46,7 +46,7 @@ function showInstallPromotion() {
   installModal.innerHTML = `
     <div class="pwa-install-content">
       <div class="pwa-install-header">
-        <img src="/icons/icon-192x192.png" alt="Foody" class="pwa-install-icon">
+        <img src="https://imaadh755.github.io/emazra/icons/icon-192x192.png" alt="1st-Bite" class="pwa-install-icon">
         <h3>Install 1st-Bite</h3>
       </div>
       <div class="pwa-install-body">
@@ -55,10 +55,6 @@ function showInstallPromotion() {
           <div class="feature">
             <i class="fas fa-bolt"></i>
             <span>Fast & Reliable</span>
-          </div>
-          <div class="feature">
-            <i class="fas fa-wifi-slash"></i>
-            <span>Works Offline</span>
           </div>
           <div class="feature">
             <i class="fas fa-home"></i>
