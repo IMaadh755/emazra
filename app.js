@@ -397,7 +397,7 @@ function getCategoryIcon(category) {
         'barbecue': 'fa-fire-burner',
         'wrap': 'fa-burrito',
         'shawarma': 'fa-burrito',
-        'sandwich': 'fa-sandwich',
+        'sandwich': 'fa-hotdog',
         'sub': 'fa-sandwich',
         'taco': 'fa-taco',
         'burrito': 'fa-burrito',
