@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1st-Bite - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css"> <link rel="stylesheet" href="admin.css"> <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-auth-compat.js"></script>
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-utensils me-2"></i>1st-Bite Admin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house-door me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item" id="logoutNavItem" style="display:none;">
+                        <a class="nav-link" href="#" id="logoutBtn">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container admin-container">
+            
+            <section id="loginSection" class="section card p-4 shadow-sm" style="max-width: 400px; margin: 50px auto;">
+                <h2 class="section-title text-center text-primary mb-4">Admin Login</h2>
+                <div class="alert alert-danger" id="loginError" style="display:none;"></div>
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="adminEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="adminEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="adminPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="adminPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+            </section>
+
+            <section id="dashboardSection" style="display:none;">
+                <h1 class="results-title mt-4 mb-4">Dashboard Management</h1>
+
+                <ul class="nav nav-tabs admin-tabs mb-4" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="food-tab" data-bs-toggle="tab" data-bs-target="#foodPanel" type="button" role="tab">
+                            <i class="fas fa-burger me-1"></i> Foods
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="restaurant-tab" data-bs-toggle="tab" data-bs-target="#restaurantPanel" type="button" role="tab">
+                            <i class="fas fa-store me-1"></i> Restaurants
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="country-tab" data-bs-toggle="tab" data-bs-target="#countryPanel" type="button" role="tab">
+                            <i class="fas fa-globe-americas me-1"></i> Countries
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    
+                    <div class="tab-pane fade show active" id="foodPanel" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#foodModal" onclick="prepareFoodModal('add')">
+                                <i class="fas fa-plus"></i> Add New Food
+                            </button>
+                            <div class="input-group search-input-group" style="max-width: 300px;">
+                                <input type="text" class="form-control" placeholder="Search foods..." id="foodSearchInput">
+                                <button class="btn btn-outline-secondary" type="button" id="foodClearSearchBtn" style="display:none;"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div id="foodListContainer"></div>
+                    </div>
+
+                    <div class="tab-pane fade" id="restaurantPanel" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#restaurantModal" onclick="prepareRestaurantModal('add')">
+                                <i class="fas fa-plus"></i> Add New Restaurant
+                            </button>
+                            <div class="input-group search-input-group" style="max-width: 300px;">
+                                <input type="text" class="form-control" placeholder="Search restaurants..." id="restaurantSearchInput">
+                                <button class="btn btn-outline-secondary" type="button" id="restaurantClearSearchBtn" style="display:none;"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div id="restaurantListContainer"></div>
+                    </div>
+
+                    <div class="tab-pane fade" id="countryPanel" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#countryModal" onclick="prepareCountryModal('add')">
+                                <i class="fas fa-plus"></i> Add New Country
+                            </button>
+                            <div class="input-group search-input-group" style="max-width: 300px;">
+                                <input type="text" class="form-control" placeholder="Search countries..." id="countrySearchInput">
+                                <button class="btn btn-outline-secondary" type="button" id="countryClearSearchBtn" style="display:none;"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div id="countryListContainer"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="modal fade" id="foodModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="foodForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="foodModalTitle">Add New Food</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="foodId">
+                        <div class="mb-3">
+                            <label for="foodName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="foodName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodPrice" class="form-label">Price (QR)</label>
+                            <input type="number" step="0.01" class="form-control" id="foodPrice" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodCategory" class="form-label">Category (e.g., Rice, Pizza)</label>
+                            <input type="text" class="form-control" id="foodCategory" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodTaste" class="form-label">Taste</label> <select class="form-select" id="foodTaste">
+                                <option value="">Select Rating</option>
+                                <option value="Dissatisfied">😒 Dissatisfied</option>
+                                <option value="Average">🤔 Average</option>
+                                <option value="Good">🙂 Good</option>
+                                <option value="Excellent">🥰 Excellent</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodQuantity" class="form-label">Quantity</label>
+                            <select class="form-select" id="foodQuantity">
+                                <option value="">Select Quantity</option>
+                                <option value="Dissatisfied">😒 Dissatisfied</option>
+                                <option value="Average">🤔 Average</option>
+                                <option value="Good">🙂 Good</option>
+                                <option value="Excellent">🥰 Excellent</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodComments" class="form-label">Comments</label>
+                            <textarea class="form-control" id="foodComments" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodRestaurantId" class="form-label">Restaurant</label>
+                            <select class="form-select" id="foodRestaurantId" required>
+                                </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foodImageUrl" class="form-label">Image URL</label>
+                            <input type="url" class="form-control" id="foodImageUrl">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="foodSubmitBtn">Save Food</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="restaurantModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="restaurantForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="restaurantModalTitle">Add New Restaurant</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="restaurantId">
+                        <div class="mb-3">
+                            <label for="restaurantName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="restaurantName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="restaurantLocation" class="form-label">Location (City)</label>
+                            <input type="text" class="form-control" id="restaurantLocation" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="restaurantCountryId" class="form-label">Country</label>
+                            <select class="form-select" id="restaurantCountryId" required>
+                                </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="restaurantSubmitBtn">Save Restaurant</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="countryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="countryForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="countryModalTitle">Add New Country</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="countryId">
+                        <div class="mb-3">
+                            <label for="countryName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="countryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="countryCode" class="form-label">2-Letter Code (e.g., lk, us, in)</label>
+                            <input type="text" class="form-control" id="countryCode" maxlength="2" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="countrySubmitBtn">Save Country</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
