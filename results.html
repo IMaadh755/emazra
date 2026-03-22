@@ -3,67 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1st-Bite - Results</title>
+    <title>1st-Bite - Premium Results</title>
+    <link rel="icon" href="https://imaadh755.github.io/emazra/icons/favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="results.css">
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="index.html">
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top z-3">
+        <div class="container max-w-1400">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.html" style="color: var(--primary-color);">
                 <i class="fas fa-utensils me-2"></i>1st-Bite
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <i class="bi bi-list"></i>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html"><i class="bi bi-house-door me-1"></i> Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="results.html?show=all"><i class="bi bi-grid me-1"></i> Browse All</a>
-                    </li>
-                </ul>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end d-none d-sm-block">
+                    <h1 class="h6 mb-0 fw-bold text-dark" id="resultsTitle">Menu</h1>
+                    <small class="text-muted" id="resultsCount">0 items</small>
+                </div>
+                <a href="index.html" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <i class="bi bi-house-door-fill"></i>
+                </a>
             </div>
         </div>
     </nav>
 
-    <!-- Results Content -->
-    <main class="main-content">
-        <div class="container results-container">
-            <div class="back-button" onclick="window.history.back()">
-                <i class="fas fa-arrow-left"></i> Back
-            </div>
+    <div class="sticky-filter-bar bg-white shadow-sm z-2 border-bottom py-2">
+        <div class="container max-w-1400">
             
-            <!-- Add search box for live filtering -->
-            <div class="search-box mb-4">
-                <i class="bi bi-search"></i>
-                <input type="text" id="liveSearchInput" placeholder="Filter results...">
-                <button class="btn btn-outline-secondary" id="clearSearchBtn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="results-header">
-                <h1 class="results-title" id="resultsTitle">Results</h1>
-                <div class="results-count" id="resultsCount">0 items</div>
-            </div>
-            
-            <div class="items-grid" id="resultsContainer">
-                <div class="text-center py-5 text-muted">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading results...</p>
+            <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+                
+                <div class="search-box-modern flex-grow-1">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="liveSearchInput" placeholder="Search foods, restaurants...">
+                    <button id="clearSearchBtn" class="d-none"><i class="bi bi-x-circle-fill"></i></button>
                 </div>
+
+                <select id="sortSelect" class="form-select form-select-sm rounded-pill shadow-none" style="width: auto; min-width: 140px; border-color: #dee2e6;">
+                    <option value="default">Sort: Default</option>
+                    <option value="priceLow">Price: Low to High</option>
+                    <option value="priceHigh">Price: High to Low</option>
+                    <option value="nameAsc">Name: A to Z</option>
+                </select>
+
+                <div class="filter-pills-scroll d-flex gap-2 pb-1 pb-md-0">
+                    <input type="checkbox" class="btn-check taste-check" id="tasteExc" value="Excellent">
+                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteExc">🥰 Excellent</label>
+
+                    <input type="checkbox" class="btn-check taste-check" id="tasteGood" value="Good">
+                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteGood">🙂 Good</label>
+                    
+                    <input type="checkbox" class="btn-check taste-check" id="tasteAvg" value="Average">
+                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteAvg">🤔 Average</label>
+
+                    <button id="resetFiltersBtn" class="btn btn-link text-danger btn-sm text-nowrap text-decoration-none fw-medium ms-1">Reset</button>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center mt-2 pt-2 border-top">
+                <span class="text-muted small fw-bold me-2 pe-2 border-end d-none d-md-block"><i class="fas fa-tags me-1"></i>Categories</span>
+                <div class="filter-pills-scroll d-flex gap-2 flex-grow-1" id="categoryFiltersContainer">
+                    <span class="text-muted small align-self-center">Loading categories...</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <main class="container max-w-1400 py-4">
+        
+        <div class="d-sm-none mb-3 d-flex justify-content-between align-items-center">
+            <h2 class="h5 fw-bold mb-0 text-dark" id="mobileResultsTitle">Menu</h2>
+            <span class="badge rounded-pill" style="background-color: var(--primary-color);" id="mobileResultsCount">0</span>
+        </div>
+
+        <div class="d-flex justify-content-end mb-4 gap-2" id="utilitiesBar" style="display: none !important;">
+            <button class="btn btn-sm bg-white border rounded-pill shadow-sm text-secondary fw-medium px-3 util-btn" id="expandAllBtn">
+                <i class="bi bi-arrows-expand me-1" style="color: var(--primary-color);"></i> Expand All
+            </button>
+            <button class="btn btn-sm bg-white border rounded-pill shadow-sm text-secondary fw-medium px-3 util-btn" id="collapseAllBtn">
+                <i class="bi bi-arrows-collapse me-1" style="color: var(--primary-color);"></i> Collapse All
+            </button>
+        </div>
+
+        <div id="resultsContainer" class="row g-4 pb-5 align-items-start">
+            <div class="col-12 text-center py-5 my-5" id="loadingState">
+                <div class="spinner-border" style="color: var(--primary-color);" role="status"></div>
+                <p class="mt-3 text-muted fw-medium">Preparing your premium menu...</p>
             </div>
         </div>
     </main>
@@ -73,146 +101,382 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
     <script>
-        // Results page specific code
-        let allFilteredItems = []; // Store all items for live search
-        
-        function loadResults() {
+        let baseItems = []; // Items filtered by Location/Country
+        let currentFilteredItems = []; // Items filtered by Search/Taste/Category
+
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsCount = document.getElementById('resultsCount');
+        const mobileResultsCount = document.getElementById('mobileResultsCount');
+        const utilitiesBar = document.getElementById('utilitiesBar');
+        const liveSearchInput = document.getElementById('liveSearchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const sortSelect = document.getElementById('sortSelect');
+        const tasteChecks = document.querySelectorAll('.taste-check');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        const categoryFiltersContainer = document.getElementById('categoryFiltersContainer');
+
+        // Emoji removal tool
+        const nukeEmojis = (text) => {
+            if (!text) return 'N/A';
+            return text.replace(/[😒🤔🙂🥰⚙️]/g, '').trim();
+        };
+
+        async function loadResults() {
             const params = new URLSearchParams(window.location.search);
-            const resultsContainer = document.getElementById('resultsContainer');
             const resultsTitle = document.getElementById('resultsTitle');
-            const resultsCount = document.getElementById('resultsCount');
+            const mobileResultsTitle = document.getElementById('mobileResultsTitle');
             
-            let title = 'All Items';
-            let filter = { type: 'all' };
+            let title = 'All Menu Items';
             
-            if (params.get('country')) {
-                const countryId = params.get('country');
-                const countryName = params.get('name') || 'Selected Country';
-                title = `Restaurants in ${countryName}`;
-                filter = { type: 'country', value: countryId };
-            }
-            else if (params.get('location')) {
-                title = `Restaurants in ${params.get('location')}`;
-                filter = { type: 'location', value: params.get('location') };
-            }
-            else if (params.get('category')) {
-                title = `${params.get('category').charAt(0).toUpperCase() + params.get('category').slice(1)} Items`;
-                filter = { type: 'category', value: params.get('category').toLowerCase() };
-            }
-            else if (params.get('search')) {
-                title = `Search Results for "${params.get('search')}"`;
-                filter = { type: 'search', value: params.get('search').toLowerCase() };
-            }
-            
-            resultsTitle.textContent = title;
-            
-            // Show loading state
-            resultsContainer.innerHTML = `
-                <div class="text-center py-5 text-muted">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading results...</p>
-                </div>
-            `;
-            
-            // Ensure all data is loaded first
-            Promise.all([
-                db.collection("foods").get(),
-                db.collection("restaurants").get(),
-                db.collection("countries").get()
-            ]).then(([foodsSnapshot, restaurantsSnapshot, countriesSnapshot]) => {
-                allFoodItems = foodsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                allRestaurants = restaurantsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                allCountries = countriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            try {
+                // Fetch all raw data
+                const [foodsSnap, restsSnap, countriesSnap] = await Promise.all([
+                    db.collection("foods").get(),
+                    db.collection("restaurants").get(),
+                    db.collection("countries").get()
+                ]);
+
+                allFoodItems = foodsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                allRestaurants = restsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                allCountries = countriesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                 
-                // Link the data
-                linkFoodsWithRestaurants();
+                linkFoodsWithRestaurants(); 
                 
-                // Now apply the filter
-                allFilteredItems = applyFilter(filter);
+                // 1. HARD FILTERS (Country or Location sets the foundation)
+                let initialFiltered = [...allFoodItems];
                 
-                displayResults(allFilteredItems);
+                if (params.get('country')) {
+                    title = params.get('name') || 'Selected Country';
+                    const restsInCountry = allRestaurants.filter(r => r.countryId === params.get('country')).map(r => r.id);
+                    initialFiltered = initialFiltered.filter(f => restsInCountry.includes(f.restaurantId));
+                } else if (params.get('location')) {
+                    title = params.get('location');
+                    const targetLoc = params.get('location').toLowerCase();
+                    const restsInLoc = allRestaurants.filter(r => r.location && r.location.toLowerCase() === targetLoc).map(r => r.id);
+                    initialFiltered = initialFiltered.filter(f => restsInLoc.includes(f.restaurantId));
+                }
                 
-                // Setup live search
-                setupLiveSearch();
-            }).catch(error => {
+                baseItems = initialFiltered;
+                resultsTitle.textContent = title;
+                mobileResultsTitle.textContent = title;
+
+                // 2. GENERATE CATEGORY WIDGET
+                generateCategoryWidget(baseItems);
+
+                // 3. SET SOFT FILTERS (From URL if user clicked a category/search on homepage)
+                if (params.get('category')) {
+                    const targetCat = params.get('category').toLowerCase();
+                    const catRadios = document.querySelectorAll('.category-radio-check');
+                    catRadios.forEach(r => {
+                        if (r.value.toLowerCase() === targetCat) r.checked = true;
+                    });
+                }
+                if (params.get('search')) {
+                    liveSearchInput.value = params.get('search');
+                    clearSearchBtn.classList.remove('d-none');
+                }
+
+                // 4. APPLY ALL FILTERS & RENDER
+                applyAdvancedFilters(); 
+                setupSidebarListeners();
+                setupCollapseExpandButtons();
+
+            } catch (error) {
                 console.error("Error loading data:", error);
                 resultsContainer.innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <p>Failed to load results</p>
-                        <button class="btn btn-outline-primary mt-2" onclick="window.location.reload()">Try Again</button>
-                    </div>
+                    <div class="col-12">
+                        <div class="alert alert-danger text-center p-4 rounded-4 shadow-sm my-5 mx-auto" style="max-width: 400px;">
+                            <i class="bi bi-exclamation-triangle-fill fs-1 d-block mb-3"></i>
+                            <h5 class="fw-bold">Connection Error</h5>
+                            <p class="mb-0">Failed to load the menu. Please check your connection and try again.</p>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // --- NEW: DYNAMIC CATEGORY WIDGET GENERATOR ---
+        function generateCategoryWidget(items) {
+            // Extract unique categories, remove empty ones, and sort alphabetically
+            const uniqueCategories = [...new Set(items.map(item => {
+                let cat = item.category ? item.category.trim() : 'Other';
+                return cat === '' ? 'Other' : cat;
+            }))].sort();
+
+            // Build the HTML for the Radio Buttons
+            let html = `
+                <input type="radio" class="btn-check category-radio-check" name="categoryFilter" id="cat-all" value="All" checked>
+                <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3 fw-bold" for="cat-all">All</label>
+            `;
+
+            uniqueCategories.forEach((cat, index) => {
+                html += `
+                    <input type="radio" class="btn-check category-radio-check" name="categoryFilter" id="cat-${index}" value="${cat}">
+                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="cat-${index}">${cat}</label>
                 `;
             });
+
+            categoryFiltersContainer.innerHTML = html;
+
+            // Add Event Listeners to the newly generated buttons
+            document.querySelectorAll('.category-radio-check').forEach(radio => {
+                radio.addEventListener('change', applyAdvancedFilters);
+            });
         }
-        
-        function displayResults(items) {
-            const resultsContainer = document.getElementById('resultsContainer');
-            const resultsCount = document.getElementById('resultsCount');
+
+        function setupCollapseExpandButtons() {
+            document.getElementById('expandAllBtn').addEventListener('click', () => {
+                document.querySelectorAll('.restaurant-modern-group .collapse').forEach(el => {
+                    const bsCollapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, {toggle: false});
+                    bsCollapse.show();
+                });
+            });
+
+            document.getElementById('collapseAllBtn').addEventListener('click', () => {
+                document.querySelectorAll('.restaurant-modern-group .collapse').forEach(el => {
+                    const bsCollapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, {toggle: false});
+                    bsCollapse.hide();
+                });
+            });
+        }
+
+        function setupSidebarListeners() {
+            liveSearchInput.addEventListener('input', () => {
+                clearSearchBtn.classList.toggle('d-none', liveSearchInput.value.trim() === '');
+                applyAdvancedFilters();
+            });
             
+            clearSearchBtn.addEventListener('click', () => {
+                liveSearchInput.value = '';
+                clearSearchBtn.classList.add('d-none');
+                applyAdvancedFilters();
+            });
+
+            sortSelect.addEventListener('change', applyAdvancedFilters);
+            tasteChecks.forEach(chk => chk.addEventListener('change', applyAdvancedFilters));
+            
+            resetFiltersBtn.addEventListener('click', () => {
+                liveSearchInput.value = '';
+                clearSearchBtn.classList.add('d-none');
+                sortSelect.value = 'default';
+                tasteChecks.forEach(chk => chk.checked = false);
+                // Reset Category to "All"
+                const allCatRadio = document.getElementById('cat-all');
+                if (allCatRadio) allCatRadio.checked = true;
+                
+                applyAdvancedFilters();
+            });
+        }
+
+        function applyAdvancedFilters() {
+            let filtered = [...baseItems];
+
+            // 1. Category Widget Filter
+            const selectedCategoryRadio = document.querySelector('.category-radio-check:checked');
+            if (selectedCategoryRadio && selectedCategoryRadio.value !== 'All') {
+                const targetCat = selectedCategoryRadio.value.toLowerCase();
+                filtered = filtered.filter(item => {
+                    const itemCat = item.category ? item.category.trim().toLowerCase() : 'other';
+                    return itemCat === targetCat;
+                });
+            }
+
+            // 2. Text Search Filter
+            const term = liveSearchInput.value.trim().toLowerCase();
+            if (term) {
+                filtered = filtered.filter(item => 
+                    (item.name && item.name.toLowerCase().includes(term)) ||
+                    (item.restaurantName && item.restaurantName.toLowerCase().includes(term)) ||
+                    (item.category && item.category.toLowerCase().includes(term))
+                );
+            }
+
+            // 3. Taste Checkboxes Filter
+            const selectedTastes = Array.from(tasteChecks).filter(c => c.checked).map(c => c.value);
+            if (selectedTastes.length > 0) {
+                filtered = filtered.filter(item => {
+                    const cleanTaste = nukeEmojis(item.taste);
+                    return selectedTastes.some(t => cleanTaste.includes(t));
+                });
+            }
+
+            // 4. Sort Filter
+            const sortVal = sortSelect.value;
+            if (sortVal === 'priceLow') {
+                filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+            } else if (sortVal === 'priceHigh') {
+                filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+            } else if (sortVal === 'nameAsc') {
+                filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            }
+
+            currentFilteredItems = filtered;
+            renderModernResults(currentFilteredItems);
+        }
+
+        function renderModernResults(items) {
+            const countText = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+            resultsCount.textContent = countText;
+            mobileResultsCount.textContent = items.length;
+
             if (items.length === 0) {
+                utilitiesBar.style.setProperty('display', 'none', 'important');
                 resultsContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-utensils"></i>
-                        <p>No results found</p>
-                        <button class="btn btn-outline-primary mt-2" onclick="window.location.href='index.html'">Back to Home</button>
-                    </div>
-                `;
-                resultsCount.textContent = `0 items`;
+                    <div class="col-12">
+                        <div class="text-center py-5 my-5 bg-white rounded-4 shadow-sm border">
+                            <i class="fas fa-search-minus mb-3" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <h4 class="fw-bold" style="color: var(--dark-color);">No matches found</h4>
+                            <p class="text-muted">Try tweaking your search or resetting the filters.</p>
+                            <button class="btn btn-outline-primary rounded-pill px-4 mt-2" style="border-color: var(--primary-color); color: var(--primary-color);" onclick="document.getElementById('resetFiltersBtn').click()">Reset Filters</button>
+                        </div>
+                    </div>`;
                 return;
             }
-            
-            resultsCount.textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
-            
-            // Group by restaurant
+
+            utilitiesBar.style.setProperty('display', 'flex', 'important');
+
             const grouped = groupItemsByRestaurant(items);
-            
-            // Display results
             resultsContainer.innerHTML = '';
-            Object.values(grouped).forEach(group => {
-                const restaurantCard = createRestaurantCard(group);
-                restaurantCard.classList.add('high-rating'); // Always expanded on results page
-                resultsContainer.appendChild(restaurantCard);
+
+            Object.values(grouped).forEach((group, index) => {
+                const restCol = document.createElement('div');
+                restCol.className = 'col-12 col-md-6 col-lg-4';
+                
+                const flagHtml = group.countryCode ? `<img src="https://flagcdn.com/${group.countryCode.toLowerCase()}.svg" class="ms-1 rounded border border-light" width="20" height="15" alt="flag">` : '';
+                
+                let html = `
+                    <div class="restaurant-modern-group shadow-sm bg-white rounded-4 overflow-hidden d-flex flex-column h-100">
+                        <div class="restaurant-modern-header p-3 text-white d-flex justify-content-between align-items-center header-collapse-toggle" 
+                             data-bs-toggle="collapse" data-bs-target="#rest-collapse-${index}" aria-expanded="true">
+                            <div class="w-100 pe-2">
+                                <h3 class="h6 mb-1 fw-bold text-truncate-2" style="line-height: 1.3;">${group.name}</h3>
+                                <div class="small text-white-50 d-flex align-items-center">
+                                    <i class="fas fa-map-marker-alt me-1"></i> 
+                                    <span class="text-truncate d-inline-block" style="max-width: 120px;">${group.location || 'Location N/A'}</span> 
+                                    ${flagHtml}
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <span class="badge bg-white rounded-pill px-2 py-1 shadow-sm" style="color: var(--primary-color); font-size: 0.75rem;">${group.items.length}</span>
+                                <div class="chevron-circle d-flex align-items-center justify-content-center rounded-circle" style="background: rgba(255,255,255,0.25); width: 30px; height: 30px;">
+                                    <i class="fas fa-chevron-up transition-icon text-white small"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="collapse show flex-grow-1" id="rest-collapse-${index}">
+                            <div class="p-3 bg-light-subtle h-100">
+                                <div class="d-flex flex-column gap-3">
+                `;
+
+                group.items.forEach(item => {
+                    const safeTaste = nukeEmojis(item.taste);
+                    const safeQuantity = nukeEmojis(item.quantity);
+                    
+                    const priceVal = parseFloat(item.price) || 0;
+                    const priceFormatted = `QR ${priceVal % 1 === 0 ? priceVal : priceVal.toFixed(2)}`;
+                    
+                    const category = item.category || 'Food';
+                    const commentsHtml = item.comments 
+                        ? `<div class="premium-comment mt-3">
+                               <i class="fas fa-quote-left me-2" style="color: var(--primary-color); opacity: 0.5;"></i>${item.comments}
+                           </div>` 
+                        : '';
+
+                    html += `
+                        <div class="card premium-food-card border-0 shadow-sm">
+                            <div class="card-body p-4 d-flex flex-column">
+                                
+                                <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                                    <div class="pe-2">
+                                        <span class="badge category-badge mb-2">${category}</span>
+                                        <h5 class="fw-bold text-dark mb-0 lh-base food-title">${item.name}</h5>
+                                    </div>
+                                    <span class="price-tag shadow-sm flex-shrink-0">${priceFormatted}</span>
+                                </div>
+                                
+                                <div class="mt-auto pt-2">
+                                    <div class="stats-container d-flex justify-content-between align-items-center rounded-3 p-2 px-3">
+                                        
+                                        <div class="stat-item d-flex align-items-center gap-2">
+                                            <div class="stat-icon taste-icon"><i class="fas fa-star"></i></div>
+                                            <div>
+                                                <small class="text-muted d-block lh-1 fw-medium" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Taste</small>
+                                                <span class="fw-bold text-dark" style="font-size: 0.9rem;">${safeTaste}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="stat-divider"></div>
+
+                                        <div class="stat-item d-flex align-items-center gap-2">
+                                            <div class="stat-icon portion-icon"><i class="fas fa-utensils"></i></div>
+                                            <div>
+                                                <small class="text-muted d-block lh-1 fw-medium" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Portion</small>
+                                                <span class="fw-bold text-dark" style="font-size: 0.9rem;">${safeQuantity}</span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    ${commentsHtml}
+                                </div>
+
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div></div></div>`;
+                restCol.innerHTML = html;
+                resultsContainer.appendChild(restCol);
+            });
+
+            setupRowSynchronization();
+        }
+
+        // SMART ROW SYNCHRONIZATION LOGIC
+        function setupRowSynchronization() {
+            const collapses = resultsContainer.querySelectorAll('.collapse');
+            
+            collapses.forEach(collapseEl => {
+                collapseEl.addEventListener('show.bs.collapse', function(e) {
+                    if (this.dataset.syncing === 'true' || window.innerWidth < 768) return;
+                    
+                    const myCol = this.closest('.col-12');
+                    const myTop = myCol.offsetTop;
+                    
+                    resultsContainer.querySelectorAll('.col-12').forEach(col => {
+                        if (col !== myCol && Math.abs(col.offsetTop - myTop) < 10) {
+                            const siblingCollapse = col.querySelector('.collapse');
+                            if (siblingCollapse && !siblingCollapse.classList.contains('show')) {
+                                siblingCollapse.dataset.syncing = 'true';
+                                const bsInst = bootstrap.Collapse.getInstance(siblingCollapse) || new bootstrap.Collapse(siblingCollapse, {toggle: false});
+                                bsInst.show();
+                                setTimeout(() => { siblingCollapse.dataset.syncing = 'false'; }, 350);
+                            }
+                        }
+                    });
+                });
+
+                collapseEl.addEventListener('hide.bs.collapse', function(e) {
+                    if (this.dataset.syncing === 'true' || window.innerWidth < 768) return;
+                    
+                    const myCol = this.closest('.col-12');
+                    const myTop = myCol.offsetTop;
+                    
+                    resultsContainer.querySelectorAll('.col-12').forEach(col => {
+                        if (col !== myCol && Math.abs(col.offsetTop - myTop) < 10) {
+                            const siblingCollapse = col.querySelector('.collapse');
+                            if (siblingCollapse && siblingCollapse.classList.contains('show')) {
+                                siblingCollapse.dataset.syncing = 'true';
+                                const bsInst = bootstrap.Collapse.getInstance(siblingCollapse) || new bootstrap.Collapse(siblingCollapse, {toggle: false});
+                                bsInst.hide();
+                                setTimeout(() => { siblingCollapse.dataset.syncing = 'false'; }, 350);
+                            }
+                        }
+                    });
+                });
             });
         }
-        
-        function setupLiveSearch() {
-    const liveSearchInput = document.getElementById('liveSearchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    
-    liveSearchInput.addEventListener('input', () => {
-        const searchTerm = liveSearchInput.value.trim().toLowerCase();
-        
-        if (searchTerm === '') {
-            displayResults(allFilteredItems);
-            clearSearchBtn.style.display = 'none';
-            return;
-        }
-        
-        clearSearchBtn.style.display = 'block';
-        
-        const filtered = allFilteredItems.filter(item => 
-            item.name.toLowerCase().includes(searchTerm) ||
-            (item.restaurantName && item.restaurantName.toLowerCase().includes(searchTerm)) ||
-            (item.comments && item.comments.toLowerCase().includes(searchTerm)) ||
-            (item.category && item.category.toLowerCase().includes(searchTerm))
-        );
-        
-        displayResults(filtered);
-    });
-    
-    clearSearchBtn.addEventListener('click', () => {
-        liveSearchInput.value = '';
-        displayResults(allFilteredItems);
-        clearSearchBtn.style.display = 'none';
-    });
-    
-    // Hide clear button initially
-    clearSearchBtn.style.display = 'none';
-}
-        
+
         document.addEventListener('DOMContentLoaded', loadResults);
     </script>
 </body>

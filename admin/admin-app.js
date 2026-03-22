@@ -16,11 +16,9 @@ const firebaseConfig = {
     projectId: "foody-4f522",
 };
 
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 
 // DOM Elements
 const totalFoodsElement = document.getElementById('totalFoods');
@@ -80,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initTheme();
     loadRestaurantCountries();
 
-    // You can remove this block if it's already handled inside setupTasteSelectors()
     const quantitySelect = document.getElementById('foodQuantity');
     const customQuantityContainer = document.getElementById('customQuantityContainer');
 
@@ -202,17 +199,25 @@ function updateCharts(foods) {
         categories[category] = (categories[category] || 0) + 1;
     });
 
-    // Process taste counts
+    // Process taste counts - Clean emojis from legacy data
     const tasteCounts = {
-        '😒 Dissatisfied': 0,
-        '🤔 Average': 0,
-        '🙂 Good': 0,
-        '🥰 Excellent': 0
+        'Dissatisfied': 0,
+        'Average': 0,
+        'Good': 0,
+        'Excellent': 0
     };
 
     foods.forEach(food => {
-        if (tasteCounts.hasOwnProperty(food.taste)) {
-            tasteCounts[food.taste]++;
+        let rawTaste = food.taste || '';
+        let cleanTaste = rawTaste;
+        
+        if (rawTaste.includes('Dissatisfied')) cleanTaste = 'Dissatisfied';
+        else if (rawTaste.includes('Average')) cleanTaste = 'Average';
+        else if (rawTaste.includes('Good')) cleanTaste = 'Good';
+        else if (rawTaste.includes('Excellent')) cleanTaste = 'Excellent';
+
+        if (tasteCounts.hasOwnProperty(cleanTaste)) {
+            tasteCounts[cleanTaste]++;
         }
     });
 
@@ -282,6 +287,16 @@ function updateRecentRestaurants(restaurants) {
     });
 }
 
+// Helper to strip emoji for display in tables
+function stripEmoji(val) {
+    if (!val) return '-';
+    if (val.includes('Dissatisfied')) return 'Dissatisfied';
+    if (val.includes('Average')) return 'Average';
+    if (val.includes('Good')) return 'Good';
+    if (val.includes('Excellent')) return 'Excellent';
+    return val;
+}
+
 // Update foods table
 async function updateFoodsTable(foods) {
     if (!foodsTableBody) return;
@@ -311,11 +326,11 @@ async function updateFoodsTable(foods) {
             <td data-label="Restaurant" data-search="${restaurantsMap[food.restaurantId]?.toLowerCase() || 'unknown'}">
                 ${restaurantsMap[food.restaurantId] || 'Unknown'}
             </td>
-            <td data-label="Taste" data-search="${food.taste?.toLowerCase() || '-'}">${food.taste || '-'}</td>
+            <td data-label="Taste" data-search="${stripEmoji(food.taste).toLowerCase()}">${stripEmoji(food.taste)}</td>
             <td data-label="Country" data-search="${countriesMap[food.countryId]?.toLowerCase() || 'unknown'}">
                 ${countriesMap[food.countryId] || 'Unknown'}
             </td>
-            <td data-label="Quantity" data-search="${food.quantity?.toLowerCase() || '-'}">${food.quantity || '-'}</td>
+            <td data-label="Quantity" data-search="${stripEmoji(food.quantity).toLowerCase()}">${stripEmoji(food.quantity)}</td>
             <td data-label="Actions">
                 <button class="btn btn-sm btn-outline-primary btn-action" onclick="editFood('${food.id}')">
                     <i class="bi bi-pencil"></i> Edit
@@ -348,7 +363,7 @@ async function updateFruitsTable(fruits) {
             <td data-label="Name">${fruit.name}</td>
             <td data-label="Price">QR ${fruit.price?.toFixed(2) || '0.00'}</td>
             <td data-label="Country">${countriesMap[fruit.origin] || fruit.origin || 'Unknown'}</td>
-            <td data-label="Taste">${fruit.taste}</td>
+            <td data-label="Taste">${stripEmoji(fruit.taste)}</td>
             <td data-label="Actions">
                 <button class="btn btn-sm btn-outline-primary btn-action" onclick="editFruit('${fruit.id}')">
                     <i class="bi bi-pencil"></i> Edit
@@ -473,7 +488,6 @@ function setupEventListeners() {
             
             rows.forEach(row => {
                 let found = false;
-                // Search specific columns with different matching logic
                 
                 // Name (exact match)
                 if (row.cells[0].textContent.toLowerCase().includes(searchTerm)) {
@@ -487,7 +501,7 @@ function setupEventListeners() {
                 else if (row.cells[2].textContent.toLowerCase().includes(searchTerm)) {
                     found = true;
                 }
-                // Taste (emoji or text match)
+                // Taste
                 else if (row.cells[3].textContent.toLowerCase().includes(searchTerm)) {
                     found = true;
                 }
@@ -744,14 +758,15 @@ window.editFood = async function(id) {
                 cuisineSelect.value = food.cuisine || '';
             }
             
-            // Handle taste selection
+            // Clean emojis for dropdown matching
+            const cleanTaste = stripEmoji(food.taste);
             const tasteSelect = document.getElementById('foodTaste');
             const customTasteContainer = document.getElementById('customTasteContainer');
             const customTasteInput = document.getElementById('foodCustomTaste');
             
             if (tasteSelect && customTasteContainer && customTasteInput) {
-                if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.taste)) {
-                    tasteSelect.value = food.taste;
+                if (['Dissatisfied', 'Average', 'Good', 'Excellent'].includes(cleanTaste)) {
+                    tasteSelect.value = cleanTaste;
                     customTasteContainer.style.display = 'none';
                 } else {
                     tasteSelect.value = 'custom';
@@ -760,14 +775,15 @@ window.editFood = async function(id) {
                 }
             }
             
-            // Handle quantity selection
+            // Clean quantity for dropdown matching
+            const cleanQuantity = stripEmoji(food.quantity);
             const quantitySelect = document.getElementById('foodQuantity');
             const customQuantityContainer = document.getElementById('customQuantityContainer');
             const customQuantityInput = document.getElementById('foodCustomQuantity');
             
             if (quantitySelect && customQuantityContainer && customQuantityInput) {
-                if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(food.quantity)) {
-                    quantitySelect.value = food.quantity;
+                if (['Dissatisfied', 'Average', 'Good', 'Excellent'].includes(cleanQuantity)) {
+                    quantitySelect.value = cleanQuantity;
                     customQuantityContainer.style.display = 'none';
                 } else {
                     quantitySelect.value = '⚙️ Custom';
@@ -825,14 +841,15 @@ window.editFruit = async function(id) {
                 countrySelect.value = fruit.origin || '';
             }
 
-            // Handle taste selection
+            // Clean emojis for matching
+            const cleanTaste = stripEmoji(fruit.taste);
             const tasteSelect = document.getElementById('fruitTaste');
             const customTasteContainer = document.getElementById('customFruitTasteContainer');
             const customTasteInput = document.getElementById('fruitCustomTaste');
 
             if (tasteSelect && customTasteContainer && customTasteInput) {
-                if (['😒 Dissatisfied', '🤔 Average', '🙂 Good', '🥰 Excellent'].includes(fruit.taste)) {
-                    tasteSelect.value = fruit.taste;
+                if (['Dissatisfied', 'Average', 'Good', 'Excellent'].includes(cleanTaste)) {
+                    tasteSelect.value = cleanTaste;
                     customTasteContainer.style.display = 'none';
                 } else {
                     tasteSelect.value = '⚙️ Custom';
