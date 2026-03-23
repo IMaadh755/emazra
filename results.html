@@ -53,19 +53,33 @@
                     <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteExc">🥰 Excellent</label>
 
                     <input type="checkbox" class="btn-check taste-check" id="tasteGood" value="Good">
-                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteGood">🙂 Good</label>
+                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteGood">😋 Good</label>
                     
                     <input type="checkbox" class="btn-check taste-check" id="tasteAvg" value="Average">
                     <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteAvg">🤔 Average</label>
+
+                    <input type="checkbox" class="btn-check taste-check" id="tasteDis" value="Dissatisfied">
+                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="tasteDis">🥵 Dissatisfied</label>
 
                     <button id="resetFiltersBtn" class="btn btn-link text-danger btn-sm text-nowrap text-decoration-none fw-medium ms-1">Reset</button>
                 </div>
             </div>
 
             <div class="d-flex align-items-center mt-2 pt-2 border-top">
-                <span class="text-muted small fw-bold me-2 pe-2 border-end d-none d-md-block"><i class="fas fa-tags me-1"></i>Categories</span>
+                <div class="text-muted small fw-bold me-2 pe-2 border-end flex-shrink-0 text-nowrap d-flex align-items-center">
+                    <i class="fas fa-tags me-1"></i>Categories
+                </div>
                 <div class="filter-pills-scroll d-flex gap-2 flex-grow-1" id="categoryFiltersContainer">
                     <span class="text-muted small align-self-center">Loading categories...</span>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center mt-2 pt-2 border-top">
+                <div class="text-muted small fw-bold me-2 pe-2 border-end flex-shrink-0 text-nowrap d-flex align-items-center">
+                    <i class="fas fa-map-marker-alt me-1"></i>Locations
+                </div>
+                <div class="filter-pills-scroll d-flex gap-2 flex-grow-1" id="locationFiltersContainer">
+                    <span class="text-muted small align-self-center">Loading locations...</span>
                 </div>
             </div>
 
@@ -101,8 +115,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
     <script>
-        let baseItems = []; // Items filtered by Location/Country
-        let currentFilteredItems = []; // Items filtered by Search/Taste/Category
+        let baseItems = []; 
+        let currentFilteredItems = []; 
 
         const resultsContainer = document.getElementById('resultsContainer');
         const resultsCount = document.getElementById('resultsCount');
@@ -114,8 +128,8 @@
         const tasteChecks = document.querySelectorAll('.taste-check');
         const resetFiltersBtn = document.getElementById('resetFiltersBtn');
         const categoryFiltersContainer = document.getElementById('categoryFiltersContainer');
+        const locationFiltersContainer = document.getElementById('locationFiltersContainer');
 
-        // Emoji removal tool
         const nukeEmojis = (text) => {
             if (!text) return 'N/A';
             return text.replace(/[😒🤔🙂🥰⚙️]/g, '').trim();
@@ -129,7 +143,6 @@
             let title = 'All Menu Items';
             
             try {
-                // Fetch all raw data
                 const [foodsSnap, restsSnap, countriesSnap] = await Promise.all([
                     db.collection("foods").get(),
                     db.collection("restaurants").get(),
@@ -142,28 +155,23 @@
                 
                 linkFoodsWithRestaurants(); 
                 
-                // 1. HARD FILTERS (Country or Location sets the foundation)
+                // 1. HARD FILTERS (Country locks the base data)
                 let initialFiltered = [...allFoodItems];
-                
                 if (params.get('country')) {
                     title = params.get('name') || 'Selected Country';
                     const restsInCountry = allRestaurants.filter(r => r.countryId === params.get('country')).map(r => r.id);
                     initialFiltered = initialFiltered.filter(f => restsInCountry.includes(f.restaurantId));
-                } else if (params.get('location')) {
-                    title = params.get('location');
-                    const targetLoc = params.get('location').toLowerCase();
-                    const restsInLoc = allRestaurants.filter(r => r.location && r.location.toLowerCase() === targetLoc).map(r => r.id);
-                    initialFiltered = initialFiltered.filter(f => restsInLoc.includes(f.restaurantId));
-                }
+                } 
                 
                 baseItems = initialFiltered;
                 resultsTitle.textContent = title;
                 mobileResultsTitle.textContent = title;
 
-                // 2. GENERATE CATEGORY WIDGET
+                // 2. GENERATE DYNAMIC WIDGETS
                 generateCategoryWidget(baseItems);
+                generateLocationWidget(baseItems);
 
-                // 3. SET SOFT FILTERS (From URL if user clicked a category/search on homepage)
+                // 3. SET SOFT FILTERS FROM URL
                 if (params.get('category')) {
                     const targetCat = params.get('category').toLowerCase();
                     const catRadios = document.querySelectorAll('.category-radio-check');
@@ -171,15 +179,40 @@
                         if (r.value.toLowerCase() === targetCat) r.checked = true;
                     });
                 }
+                if (params.get('location')) {
+                    const targetLoc = params.get('location').toLowerCase();
+                    const locRadios = document.querySelectorAll('.location-radio-check');
+                    locRadios.forEach(r => {
+                        if (r.value.toLowerCase() === targetLoc) r.checked = true;
+                    });
+                    
+                    // Update titles for location
+                    title = params.get('location');
+                    resultsTitle.textContent = title;
+                    mobileResultsTitle.textContent = title;
+                }
                 if (params.get('search')) {
                     liveSearchInput.value = params.get('search');
                     clearSearchBtn.classList.remove('d-none');
                 }
 
-                // 4. APPLY ALL FILTERS & RENDER
+                function setupHorizontalMouseScroll() {
+            const scrollContainers = document.querySelectorAll('.filter-pills-scroll, .taste-filters-scroll');
+            scrollContainers.forEach(container => {
+                container.addEventListener('wheel', function(e) {
+                    if (e.deltaY !== 0) {
+                        e.preventDefault(); // Stop page from scrolling up/down
+                        this.scrollLeft += e.deltaY; // Scroll left/right instead
+                    }
+                }, { passive: false });
+            });
+        }
+
+                // 4. APPLY FILTERS & RENDER
                 applyAdvancedFilters(); 
                 setupSidebarListeners();
                 setupCollapseExpandButtons();
+                setupHorizontalMouseScroll();
 
             } catch (error) {
                 console.error("Error loading data:", error);
@@ -194,15 +227,13 @@
             }
         }
 
-        // --- NEW: DYNAMIC CATEGORY WIDGET GENERATOR ---
+        // --- DYNAMIC WIDGET GENERATORS ---
         function generateCategoryWidget(items) {
-            // Extract unique categories, remove empty ones, and sort alphabetically
             const uniqueCategories = [...new Set(items.map(item => {
                 let cat = item.category ? item.category.trim() : 'Other';
                 return cat === '' ? 'Other' : cat;
             }))].sort();
 
-            // Build the HTML for the Radio Buttons
             let html = `
                 <input type="radio" class="btn-check category-radio-check" name="categoryFilter" id="cat-all" value="All" checked>
                 <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3 fw-bold" for="cat-all">All</label>
@@ -216,11 +247,29 @@
             });
 
             categoryFiltersContainer.innerHTML = html;
+            document.querySelectorAll('.category-radio-check').forEach(radio => radio.addEventListener('change', applyAdvancedFilters));
+        }
 
-            // Add Event Listeners to the newly generated buttons
-            document.querySelectorAll('.category-radio-check').forEach(radio => {
-                radio.addEventListener('change', applyAdvancedFilters);
+        function generateLocationWidget(items) {
+            const uniqueLocations = [...new Set(items.map(item => {
+                let loc = item.location ? item.location.trim() : 'Unknown';
+                return loc === '' ? 'Unknown' : loc;
+            }))].sort();
+
+            let html = `
+                <input type="radio" class="btn-check location-radio-check" name="locationFilter" id="loc-all" value="All" checked>
+                <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3 fw-bold" for="loc-all">All</label>
+            `;
+
+            uniqueLocations.forEach((loc, index) => {
+                html += `
+                    <input type="radio" class="btn-check location-radio-check" name="locationFilter" id="loc-${index}" value="${loc}">
+                    <label class="btn btn-outline-custom rounded-pill btn-sm text-nowrap px-3" for="loc-${index}">${loc}</label>
+                `;
             });
+
+            locationFiltersContainer.innerHTML = html;
+            document.querySelectorAll('.location-radio-check').forEach(radio => radio.addEventListener('change', applyAdvancedFilters));
         }
 
         function setupCollapseExpandButtons() {
@@ -259,9 +308,12 @@
                 clearSearchBtn.classList.add('d-none');
                 sortSelect.value = 'default';
                 tasteChecks.forEach(chk => chk.checked = false);
-                // Reset Category to "All"
+                
+                // Reset Radio Widgets
                 const allCatRadio = document.getElementById('cat-all');
                 if (allCatRadio) allCatRadio.checked = true;
+                const allLocRadio = document.getElementById('loc-all');
+                if (allLocRadio) allLocRadio.checked = true;
                 
                 applyAdvancedFilters();
             });
@@ -270,7 +322,7 @@
         function applyAdvancedFilters() {
             let filtered = [...baseItems];
 
-            // 1. Category Widget Filter
+            // 1. Category Filter
             const selectedCategoryRadio = document.querySelector('.category-radio-check:checked');
             if (selectedCategoryRadio && selectedCategoryRadio.value !== 'All') {
                 const targetCat = selectedCategoryRadio.value.toLowerCase();
@@ -280,7 +332,17 @@
                 });
             }
 
-            // 2. Text Search Filter
+            // 2. Location Filter
+            const selectedLocationRadio = document.querySelector('.location-radio-check:checked');
+            if (selectedLocationRadio && selectedLocationRadio.value !== 'All') {
+                const targetLoc = selectedLocationRadio.value.toLowerCase();
+                filtered = filtered.filter(item => {
+                    const itemLoc = item.location ? item.location.trim().toLowerCase() : 'unknown';
+                    return itemLoc === targetLoc;
+                });
+            }
+
+            // 3. Search Filter
             const term = liveSearchInput.value.trim().toLowerCase();
             if (term) {
                 filtered = filtered.filter(item => 
@@ -290,7 +352,7 @@
                 );
             }
 
-            // 3. Taste Checkboxes Filter
+            // 4. Taste Filter
             const selectedTastes = Array.from(tasteChecks).filter(c => c.checked).map(c => c.value);
             if (selectedTastes.length > 0) {
                 filtered = filtered.filter(item => {
@@ -299,7 +361,7 @@
                 });
             }
 
-            // 4. Sort Filter
+            // 5. Sort
             const sortVal = sortSelect.value;
             if (sortVal === 'priceLow') {
                 filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -372,6 +434,12 @@
                     const safeTaste = nukeEmojis(item.taste);
                     const safeQuantity = nukeEmojis(item.quantity);
                     
+                    let tasteEmoji = '<i class="fas fa-star"></i>';
+                    if (safeTaste === 'Excellent') tasteEmoji = '🥰';
+                    else if (safeTaste === 'Good') tasteEmoji = '😋';
+                    else if (safeTaste === 'Average') tasteEmoji = '🤔';
+                    else if (safeTaste === 'Dissatisfied') tasteEmoji = '🥵';
+                    
                     const priceVal = parseFloat(item.price) || 0;
                     const priceFormatted = `QR ${priceVal % 1 === 0 ? priceVal : priceVal.toFixed(2)}`;
                     
@@ -385,7 +453,6 @@
                     html += `
                         <div class="card premium-food-card border-0 shadow-sm">
                             <div class="card-body p-4 d-flex flex-column">
-                                
                                 <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
                                     <div class="pe-2">
                                         <span class="badge category-badge mb-2">${category}</span>
@@ -396,9 +463,8 @@
                                 
                                 <div class="mt-auto pt-2">
                                     <div class="stats-container d-flex justify-content-between align-items-center rounded-3 p-2 px-3">
-                                        
                                         <div class="stat-item d-flex align-items-center gap-2">
-                                            <div class="stat-icon taste-icon"><i class="fas fa-star"></i></div>
+                                            <div class="stat-icon taste-icon fs-5">${tasteEmoji}</div>
                                             <div>
                                                 <small class="text-muted d-block lh-1 fw-medium" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Taste</small>
                                                 <span class="fw-bold text-dark" style="font-size: 0.9rem;">${safeTaste}</span>
@@ -414,11 +480,9 @@
                                                 <span class="fw-bold text-dark" style="font-size: 0.9rem;">${safeQuantity}</span>
                                             </div>
                                         </div>
-
                                     </div>
                                     ${commentsHtml}
                                 </div>
-
                             </div>
                         </div>
                     `;
@@ -432,7 +496,6 @@
             setupRowSynchronization();
         }
 
-        // SMART ROW SYNCHRONIZATION LOGIC
         function setupRowSynchronization() {
             const collapses = resultsContainer.querySelectorAll('.collapse');
             

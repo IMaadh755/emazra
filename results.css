@@ -39,9 +39,25 @@
 .filter-pills-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 transparent;
+    padding-bottom: 6px; /* Gives room so the scrollbar doesn't touch the pills */
 }
-.filter-pills-scroll::-webkit-scrollbar { display: none; }
+
+/* Elegant Custom Scrollbar for PC */
+.filter-pills-scroll::-webkit-scrollbar { 
+    height: 6px; 
+}
+.filter-pills-scroll::-webkit-scrollbar-track { 
+    background: transparent; 
+}
+.filter-pills-scroll::-webkit-scrollbar-thumb { 
+    background-color: #dee2e6; 
+    border-radius: 10px; 
+}
+.filter-pills-scroll::-webkit-scrollbar-thumb:hover { 
+    background-color: var(--primary-color); 
+}
 
 .btn-outline-custom {
     border-color: #dee2e6;
